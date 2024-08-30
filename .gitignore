@@ -1,0 +1,9 @@
+/.snakemake/
+/.ipynb_checkpoints/
+/data/
+/results/
+/logs
+/resources
+client_secrets.json
+token.pickle
+*.html

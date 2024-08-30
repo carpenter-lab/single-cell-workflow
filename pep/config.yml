@@ -1,0 +1,8 @@
+pep_version: 2.1.0
+sample_table: "sample_table.csv"
+sample_modifiers:
+  derive:
+    attributes: [ gex_path, tcr_path ]
+    sources:
+      source1: data/new{sample_name}/per_sample_outs/{sample_name}2023/count/sample_filtered_feature_bc_matrix.h5
+      source2: data/new{sample_name}/per_sample_outs/{sample_name}2023/vdj_t/filtered_contig_annotations.csv

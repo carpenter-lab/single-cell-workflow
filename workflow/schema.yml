@@ -1,0 +1,46 @@
+imports:
+  - http://schema.databio.org/pep/2.1.0.yaml
+properties:
+  config:
+    type: object
+    properties:
+      pep_version:
+        description: "Version of the PEP Schema this PEP follows"
+        type: string
+      sample_table:
+        type: string
+        description: "Path to the sample annotation table with one row per sample"
+    required:
+      - pep_version
+      - sample_table
+  samples:
+    type: array
+    items:
+      type: object
+      properties:
+        sample_name:
+          type: string
+          description: "Unique name for sample"
+        condition:
+          type: string
+          description: "Experimental Condition"
+        patient_id:
+          type: string
+          description: "Unique Patient Identifier"
+        gex_path:
+          type: string
+          description: "Path to 10x h5 file with Gene Expression and Surface Protein"
+        tcr_path:
+          type: string
+          description: "Path to 10x TCR csv"
+      files:
+        - gex_path
+        - tcr_path
+      required_files:
+        - gex_path
+        - tcr_path
+      required:
+        - condition
+        - patient_id
+required:
+  - samples

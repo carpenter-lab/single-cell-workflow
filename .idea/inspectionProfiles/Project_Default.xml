@@ -58,13 +58,7 @@
       </option>
     </inspection_tool>
     <inspection_tool class="PyShadowingNamesInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ignoredIdentifiers">
-        <list>
-          <option value="property.*" />
-        </list>
-      </option>
-    </inspection_tool>
+    <inspection_tool class="RClosureAssignmentInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SmkRedundantCommaInspection" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>

@@ -1,0 +1,4 @@
+sample_name,condition,patient_id,gex_path,tcr_path
+P081-BAL-NonInf-Multi,Not Infected,P081,source1,source2
+P081-BAL-InfAd-Multi,Infected,P081,source1,source2
+P081-BAL-InfAdPep-Multi,Infected + Peptide,P081,source1,source2

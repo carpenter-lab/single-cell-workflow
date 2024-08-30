@@ -1,0 +1,38 @@
+from snakemake.utils import min_version
+from common import WorkflowResults
+
+min_version("3.7")
+
+
+configfile: "config/config.yml"
+
+
+pepfile: "pep/config.yml"
+
+
+pepschema: "schema.yml"
+
+
+include: "seurat_preprocessing.smk"
+include: "clustering.smk"
+include: "plotting.smk"
+include: "differential_expression.smk"
+include: "gliph.smk"
+
+
+rule all:
+    input:
+        expand("results/qc/{type}_qc_plot.png", type=["pre", "post"]),
+        WorkflowResults(
+            config["plotting"]["umap_plot"],
+            "results/clustering/{subset}/plots/{assay}/{reduction}/{group}_split_{split}.png",
+        ).create_path_list(),
+        WorkflowResults(
+            config["plotting"]["dot_plot"],
+            "results/de/{subset}/plots/{assay}/dot_plot_by_{group}.png",
+        ).create_path_list(),
+        WorkflowResults(
+            config["differential_expression"]["params"],
+            "results/de/{subset}/{assay}/{group}_markers.{ext}",
+            ext=["tsv"],
+        ).create_path_list(),

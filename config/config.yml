@@ -1,0 +1,48 @@
+__use_yte__: true
+__definitions__:
+  - from itertools import product
+preprocessing:
+  normalisation:
+    method: "sctransform"
+    vars_to_regress: null
+subcluster:
+  all_data_key: "all_data"
+  subclusters:
+    - name: t_cells
+      params: null
+    - name: macs
+      params:
+        idents_use: "predicted.ann_finest_level"
+        idents_keep: [ "Alveolar Mφ CCL3+", "Non-classical monocytes",
+                       "Alveolar macrophages", "Monocyte-derived Mφ",
+                       "Alveolar Mφ MT-positive", "Classical monocytes" ]
+differential_expression:
+  test: "wilcox"
+  params:
+    subsets: [ "t_cells", "macs", "all_data" ]
+    assays: [ "ADT", "SCT" ]
+    group_by: [ "predicted.ann_finest_level", "predicted.ann_level_2" ]
+plotting:
+  dot_plot:
+    subsets: [ "t_cells", "macs", "all_data" ]
+    assays: [ "ADT", "SCT" ]
+    group_by: [ "predicted.ann_finest_level", "predicted.ann_level_2" ]
+    features:
+      ADT: [ "Hu.CD107a", "Hu.CD11c", "Hu.CD31", "Hu.CD47", "Hu.CD7",
+             "Hu.HLA.ABC", "Hu.CD155", "Hu.CD134", "Hu.CD56", "Hu.CD16",
+             "Hu.IgM", "Hu.CD4-RPA.T4", "Hu.CD8", "Hu.CD45RO" ]
+      SCT: [ "GZMB", "IFNG", "TNF", "FEM1C", "CCL4", "GZMH", "MDM2", "TOP2A",
+             "LGALS3", "SOD2", "HLA-DPA1", "CD74" ]
+  umap_plot:
+    subsets: [ "t_cells", "macs", "all_data" ]
+    assays: [ "SCT" ]
+    reductions: [ "harmony", "pca" ]
+    group_by_yte_only:
+      ?for assay in ["SCT"]:
+        - group: ?f"{assay}_{{reduction}}_clusters"
+          split: [ null, "condition" ]
+    group_by:
+      - group: "clonal_expansion_type"
+        split: "condition"
+      - group: "predicted.ann_finest_level"
+        split: [ null, "predicted.ann_level_2" ]
