@@ -139,6 +139,10 @@ class UploadToGoogleDrive:
 if __name__ == "__main__":
     if os.getenv("DRYRUN") == "1":
         main(["-c", "1", "--dry-run", "--quiet", "rules"])
+    if os.getenv("SETUP_GDRIVE") == 1:
+        if not os.path.exists("client_secrets.json"):
+            raise RuntimeError("A `client_secrets.json` file is required.")
+        UploadToGoogleDrive()
     else:
         try:
             main(["-c", os.getenv("WORKFLOW_CORES")])
@@ -160,7 +164,7 @@ if __name__ == "__main__":
         with open("report.html", "rb") as f:
             hash_new = hashlib.md5(f.read()).hexdigest()
 
-        if hash_old != hash_new:
+        if (hash_old != hash_new) & os.path.exists("client_secrets.json"):
             UploadToGoogleDrive().add_drive_label("Robert").update_with_new_file(
                 "BAL scRNA seq.html", "report.html"
             )
