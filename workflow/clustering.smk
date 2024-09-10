@@ -43,10 +43,22 @@ rule run_azimuth:
     script:
         "scripts/azimuth.R"
 
+rule annotate_tcr_seurat:
+    input:
+        seurat=rules.run_azimuth.output.seurat
+    params:
+        tcr_patterns={"TB": ["SLG%WET", "SSPGQQGG%NYG", "S%GTESNQP", "SPGR%E", "SYSGR%TE", "SLG%LE", "SQG%AYNE",
+                             "SRG%QP", "G%GEGQP", "SQER%YG", "SQEGR%NQP", "SLGTESN%P", "SPGTSG%DT", "S%VTSGTYE", "RTG%YE"],
+                      "Other": "SRDR%SYG"}
+    output:
+        seurat="results/gliph/labelled_tcr.rds"
+    log: "logs/gliph/label_tcr.log"
+    script:
+        "scripts/label_tcr.R"
 
 rule subcluster:
     input:
-        seurat=rules.run_azimuth.output.seurat,
+        seurat=rules.annotate_tcr_seurat.output.seurat,
     params:
         *get_subcluster_params(config),
     output:
