@@ -18,6 +18,7 @@ rule differential_expression:
     threads: lambda wildcards: 1 if wildcards.assay == "ADT" else min(workflow.cores / 2, 4)
     log:
         "logs/de/{subset}/{assay}/{grouping}.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/differential_expression.R"
 
@@ -37,5 +38,6 @@ rule table_to_html:
         ),
     log:
         "logs/de/{subset}/{assay}/html_{grouping}.log",
+    conda: "envs/datatables_js.yml"
     script:
         "scripts/dataframe_to_DataTables.R"

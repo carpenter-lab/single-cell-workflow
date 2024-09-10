@@ -38,6 +38,7 @@ rule qc_plot:
         ),
     log:
         "logs/qc/{type}_plot.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/plots.R"
 

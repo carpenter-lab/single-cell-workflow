@@ -14,10 +14,10 @@ pepschema: "schema.yml"
 
 
 include: "seurat_preprocessing.smk"
+include: "gliph.smk"
 include: "clustering.smk"
 include: "plotting.smk"
 include: "differential_expression.smk"
-include: "gliph.smk"
 
 
 rule all:

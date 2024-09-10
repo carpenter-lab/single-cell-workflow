@@ -1,0 +1,16 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base=4.3
+  - r-seurat=5.1
+  - bioconductor-screpertoire
+  - r-tidyverse
+  - r-patchwork
+  - r-glue
+  - r-data.table
+  - r-foreach
+  - r-rlang
+  - r-cli
+  - r-azimuth
+  - r-harmony

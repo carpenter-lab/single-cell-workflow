@@ -9,6 +9,7 @@ rule integrate:
     threads: 4
     log:
         "logs/integration/{subset}.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/integrate.R"
 
@@ -23,6 +24,7 @@ rule cluster:
         seurat="results/clustering/{subset}.rds",
     log:
         "logs/clustering/{subset}.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/cluster.R"
 
@@ -40,6 +42,7 @@ rule run_azimuth:
     log:
         "logs/azimuth.log",
     threads: 4
+    conda: "envs/seurat.yml"
     script:
         "scripts/azimuth.R"
 
@@ -53,6 +56,7 @@ rule annotate_tcr_seurat:
     output:
         seurat="results/gliph/labelled_tcr.rds"
     log: "logs/gliph/label_tcr.log"
+    conda: "envs/seurat.yml"
     script:
         "scripts/label_tcr.R"
 
@@ -65,5 +69,6 @@ rule subcluster:
         seurat="results/seurat_objects/{name}.rds",
     log:
         "logs/subclustering/{name}.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/subcluster.R"

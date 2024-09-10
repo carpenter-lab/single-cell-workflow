@@ -9,6 +9,7 @@ rule import_seurat:
         seurat="results/import/object.rds",
     log:
         "logs/import.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/import.R"
 
@@ -23,6 +24,7 @@ rule import_tcr:
         seurat="results/import/object_with_tcr.rds",
     log:
         "logs/import_tcr.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/import_tcr.R"
 
@@ -33,6 +35,7 @@ rule qc_setup:
         seurat="results/qc/prep.rds",
     log:
         "logs/qc/setup.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/quality_control_setup.R"
 
@@ -44,6 +47,7 @@ rule filter:
         seurat="results/seurat_objects/all_data.rds",
     log:
         "logs/filter.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/filter.R"
 
@@ -59,6 +63,7 @@ rule normalise:
     threads: 4
     log:
         "logs/normalise/{subset}.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/normalise.R"
 
@@ -71,5 +76,6 @@ rule pca:
     threads: 4
     log:
         "logs/pca_{subset}.log",
+    conda: "envs/seurat.yml"
     script:
         "scripts/pca_reduction.R"

@@ -4,6 +4,7 @@ rule gliph_prep1:
         seurat=rules.filter.output.seurat,
     output:
         tsv="results/gliph/input_tcr.tsv",
+    conda: "envs/seurat.yml"
     script:
         "scripts/gliph_prep.R"
 
