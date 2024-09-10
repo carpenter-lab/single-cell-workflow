@@ -1,7 +1,6 @@
 rule import_seurat:
     input:
         gex=pep.sample_table.gex_path,
-        tcr=pep.sample_table.tcr_path,
     params:
         patient_id=pep.sample_table.patient_id,
         condition=pep.sample_table.condition,
@@ -13,10 +12,23 @@ rule import_seurat:
     script:
         "scripts/import.R"
 
+rule import_tcr:
+    input:
+        seurat=rules.import_seurat.output.seurat,
+        tcr=pep.sample_table.tcr_path,
+    params:
+        sample_name=pep.sample_table.sample_name,
+        filter_chains=False
+    output:
+        seurat="results/import/object_with_tcr.rds",
+    log:
+        "logs/import_tcr.log",
+    script:
+        "scripts/import_tcr.R"
 
 rule qc_setup:
     input:
-        seurat=rules.import_seurat.output.seurat,
+        seurat=rules.import_tcr.output.seurat,
     output:
         seurat="results/qc/prep.rds",
     log:
