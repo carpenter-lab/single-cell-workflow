@@ -4,6 +4,7 @@ import pathlib
 import pickle
 from typing import Optional, Self
 
+import click
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
@@ -94,18 +95,17 @@ class UploadToGoogleDrive:
             self.service.files()
             .list(
                 corpora="drive",
-                pageSize=5,
                 driveId=self._drive_id,
                 includeItemsFromAllDrives=True,
                 supportsAllDrives=True,
-                fields="nextPageToken, files(id, name, mimeType, size, parents, modifiedTime)",
+                fields="files(id, name, mimeType, size, parents, modifiedTime)",
             )
             .execute()
         )
-
         for file in files["files"]:
             if file["name"] == filename:
                 return file["id"]
+
 
     def update_with_new_file(self, filename: str, local_file: str) -> None:
         """
@@ -123,10 +123,11 @@ class UploadToGoogleDrive:
         metadata = {"name": filename, "mimetype": "text/html"}
 
         try:
+            file_id = self.get_file_id(filename)
             self.validate_service()
             self.service.files().update(
                 supportsAllDrives=True,
-                fileId=self.get_file_id(filename),
+                fileId=file_id,
                 media_body=media,
                 body=metadata,
             ).execute()
@@ -136,35 +137,60 @@ class UploadToGoogleDrive:
             )
 
 
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+def dry_run():
+    main(["-c", "1", "--dry-run", "--quiet", "rules"])
+
+
+@cli.command()
+def setup_google_drive():
+    if not os.path.exists("client_secrets.json"):
+        raise RuntimeError("A `client_secrets.json` file is required.")
+    UploadToGoogleDrive()
+
+
+@cli.command()
+@click.option("--cores", default=1, help="Number of cores", type=click.INT)
+@click.option("--report", default="report.html", help="Path to use to generate report", type=click.Path(dir_okay=False, path_type=pathlib.Path))
+@click.option("--gdrive-name", default="report.html", help="Name to use for report on Google Drive", type=click.STRING)
+@click.option("--gdrive", default="", help="Drive to use in Google Drive", type=click.STRING)
+def run_workflow(cores, report, gdrive_name, gdrive):
+    try:
+        import panoptes
+        opts = ["--wms-monitor", "http://127.0.0.1:5000"]
+    except ModuleNotFoundError:
+        opts = []
+    try:
+        main(["-c", str(cores), "--resources", "mem_mb=30000", "-k", *opts])
+    except SystemExit as e:
+        if e.code != 0:
+            raise e
+
+    hash_old = None
+    if report.exists():
+        with open(report, "rb") as f:
+            hash_old = hashlib.md5(f.read()).hexdigest()
+
+    try:
+        main(["--report", "report.html", "--quiet", "all"])
+    except SystemExit as e:
+        if e.code != 0:
+            raise e
+
+    with open("report.html", "rb") as f:
+        hash_new = hashlib.md5(f.read()).hexdigest()
+
+    if (hash_old != hash_new) & os.path.exists("client_secrets.json"):
+        print("Uploading to Google Drive...")
+        UploadToGoogleDrive().add_drive_label(gdrive).update_with_new_file(
+            gdrive_name, report
+        )
+
+
 if __name__ == "__main__":
-    if os.getenv("DRYRUN") == "1":
-        main(["-c", "1", "--dry-run", "--quiet", "rules"])
-    if os.getenv("SETUP_GDRIVE") == 1:
-        if not os.path.exists("client_secrets.json"):
-            raise RuntimeError("A `client_secrets.json` file is required.")
-        UploadToGoogleDrive()
-    else:
-        try:
-            main(["-c", os.getenv("WORKFLOW_CORES")])
-        except SystemExit as e:
-            if e.code != 0:
-                raise e
-
-        hash_old = None
-        if pathlib.Path("report.txt").exists():
-            with open("report.html", "rb") as f:
-                hash_old = hashlib.md5(f.read()).hexdigest()
-
-        try:
-            main(["--report", "report.html", "--quiet", "all"])
-        except SystemExit as e:
-            if e.code != 0:
-                raise e
-
-        with open("report.html", "rb") as f:
-            hash_new = hashlib.md5(f.read()).hexdigest()
-
-        if (hash_old != hash_new) & os.path.exists("client_secrets.json"):
-            UploadToGoogleDrive().add_drive_label("Robert").update_with_new_file(
-                "BAL scRNA seq.html", "report.html"
-            )
+    cli(auto_envvar_prefix="WORKFLOW")
