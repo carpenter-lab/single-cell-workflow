@@ -96,6 +96,8 @@ class PlotTitle:
                 return "Dot Plot"
             case "cluster" | "split" | "cell_type":
                 return "UMAP"
+            case "heatmap":
+                return "Heatmap"
             case _:
                 return "No Title Can Be Created"
 
@@ -156,7 +158,7 @@ def get_category_name(wildcards: dict) -> str:
 def get_proper_clustering_output(config, rules) -> Callable:
     def _get_proper_clustering_output(wildcards):
         if wildcards["subset"] == config["subcluster"].get("all_data_key"):
-            return rules.run_azimuth.output.seurat
+            return rules.annotate_tcr_seurat.output.seurat
         else:
             return rules.cluster.output.seurat
 
