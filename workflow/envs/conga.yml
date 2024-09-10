@@ -1,0 +1,23 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base=4.3
+  - r-seurat=5.1
+  - bioconductor-dropletutils
+  - python=3.9
+  - seaborn
+  - scikit-learn
+  - statsmodels
+  - numba
+  - pytables
+  - python-igraph
+  - leidenalg
+  - louvain
+  - notebook
+  - tbb
+  - scanpy
+  - fastcluster
+  - pyyaml
+  - imagemagick
+  - pip
