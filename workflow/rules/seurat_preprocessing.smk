@@ -1,3 +1,10 @@
+pep = config["pep"]
+
+rule run_preprocessing:
+    input:
+        expand("results/qc/{type}_qc_plot.png",type=["pre", "post"]),
+        expand("results/pca/{subset}/object.rds", subset=config["subcluster"].get("all_data_key"))
+
 rule import_seurat:
     input:
         gex=pep.sample_table.gex_path,
@@ -9,9 +16,9 @@ rule import_seurat:
         seurat="results/import/object.rds",
     log:
         "logs/import.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/import.R"
+        "../scripts/import.R"
 
 rule import_tcr:
     input:
@@ -24,9 +31,9 @@ rule import_tcr:
         seurat="results/import/object_with_tcr.rds",
     log:
         "logs/import_tcr.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/import_tcr.R"
+        "../scripts/import_tcr.R"
 
 rule qc_setup:
     input:
@@ -35,9 +42,9 @@ rule qc_setup:
         seurat="results/qc/prep.rds",
     log:
         "logs/qc/setup.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/quality_control_setup.R"
+        "../scripts/quality_control_setup.R"
 
 
 rule filter:
@@ -47,9 +54,9 @@ rule filter:
         seurat="results/seurat_objects/all_data.rds",
     log:
         "logs/filter.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/filter.R"
+        "../scripts/filter.R"
 
 
 rule normalise:
@@ -63,9 +70,9 @@ rule normalise:
     threads: 4
     log:
         "logs/normalise/{subset}.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/normalise.R"
+        "../scripts/normalise.R"
 
 
 rule pca:
@@ -76,6 +83,6 @@ rule pca:
     threads: 4
     log:
         "logs/pca_{subset}.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/pca_reduction.R"
+        "../scripts/pca_reduction.R"

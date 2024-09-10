@@ -3,15 +3,15 @@ from common import get_subcluster_params
 
 rule integrate:
     input:
-        seurat=rules.pca.output.seurat,
+        seurat="results/pca/{subset}/object.rds",
     output:
         seurat="results/integration/{subset}.rds",
     threads: 4
     log:
         "logs/integration/{subset}.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/integrate.R"
+        "../scripts/integrate.R"
 
 
 rule cluster:
@@ -24,9 +24,9 @@ rule cluster:
         seurat="results/clustering/{subset}.rds",
     log:
         "logs/clustering/{subset}.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/cluster.R"
+        "../scripts/cluster.R"
 
 
 rule run_azimuth:
@@ -42,9 +42,9 @@ rule run_azimuth:
     log:
         "logs/azimuth.log",
     threads: 4
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/azimuth.R"
+        "../scripts/azimuth.R"
 
 rule annotate_tcr_seurat:
     input:
@@ -56,9 +56,9 @@ rule annotate_tcr_seurat:
     output:
         seurat="results/gliph/labelled_tcr.rds"
     log: "logs/gliph/label_tcr.log"
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/label_tcr.R"
+        "../scripts/label_tcr.R"
 
 rule subcluster:
     input:
@@ -69,6 +69,6 @@ rule subcluster:
         seurat="results/seurat_objects/{name}.rds",
     log:
         "logs/subclustering/{name}.log",
-    conda: "envs/seurat.yml"
+    conda: "../envs/seurat.yml"
     script:
-        "scripts/subcluster.R"
+        "../scripts/subcluster.R"

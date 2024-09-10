@@ -1,5 +1,5 @@
 from snakemake.utils import min_version
-from common import WorkflowResults
+from rules.common import WorkflowResults
 
 min_version("3.7")
 
@@ -12,13 +12,28 @@ pepfile: "pep/config.yml"
 
 pepschema: "schema.yml"
 
+config["pep"] = pep
 
-include: "seurat_preprocessing.smk"
-include: "gliph.smk"
-include: "clustering.smk"
-include: "plotting.smk"
-include: "differential_expression.smk"
+module preprocessing:
+    snakefile: "rules/seurat_preprocessing.smk"
+    config: config
 
+module differential_expression:
+    snakefile: "rules/differential_expression.smk"
+    config: config
+
+module plotting:
+    snakefile: "rules/plotting.smk"
+    config: config
+
+module clustering:
+    snakefile: "rules/clustering.smk"
+    config: config
+
+use rule * from preprocessing
+use rule * from clustering
+use rule * from differential_expression
+use rule * from plotting
 
 rule all:
     input:
