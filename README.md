@@ -68,7 +68,6 @@ preprocessing:
     vars_to_regress: null         # Variables to regress during normalisation, null for no regression
 ```
 
-
 #### Subclustering
 
 ```yaml
@@ -167,5 +166,6 @@ SETUP_GDRIVE=1 ./run_workflow.py
 WORKFLOW_CORES=10 ./run_workflow.py
 ```
 
-This cannot be emphasized enough. **DO NOT SHARE THE `token.pickle` FILE!** 
+This cannot be emphasized enough. 
+**DO NOT SHARE THE `token.pickle` FILE!** 
 This file can allow **anyone** the access to upload to your Google Drive.
