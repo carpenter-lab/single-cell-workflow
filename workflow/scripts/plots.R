@@ -106,6 +106,10 @@ DotPlot <- function(seurat, features, group_by = NULL, assay = NULL, ...) {
     )
 }
 
+Heatmap <- function(seurat, group_by, ...) {
+    Seurat::DoHeatmap(seurat, group.by = group_by)
+}
+
 PlotMethod <- function(type) {
     fun <- switch(
         type,
@@ -113,7 +117,8 @@ PlotMethod <- function(type) {
         cluster = ClusterPlot,
         split = SplitDimPlot,
         cell_type = MultiCellTypeAnnDimPlot,
-        dot = DotPlot
+        dot = DotPlot,
+        heatmap = Heatmap
     )
     function(...) do.call(fun, list2(...))
 }

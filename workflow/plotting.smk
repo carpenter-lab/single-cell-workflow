@@ -78,3 +78,23 @@ use rule qc_plot as dot_plot with:
         ),
     log:
         "logs/de/{subset}/plots/{assay}/dot_plot_by_{group_by}.log",
+
+
+use rule qc_plot as heatmap with:
+    input:
+        seurat=get_proper_clustering_output(config, rules),
+    params:
+        title=PlotTitle("heatmap").make_title,
+        subtitle=make_plot_subtitle,
+        plot="heatmap",
+    output:
+        report(
+            "results/de/{subset}/plots/{assay}/heatmap_by_{group_by}.png",
+            category=get_category_name,
+            subcategory="Differential Expression",
+            labels=report_plot_labels,
+        ),
+    resources:
+        mem_mb=5*1024
+    log:
+        "logs/de/{subset}/plots/{assay}/heatmap_by_{group_by}.log",
