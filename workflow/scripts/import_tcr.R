@@ -1,12 +1,21 @@
 snakemake@source("functions.R")
-# SinkAllOutput(snakemake@log)
+SinkAllOutput(snakemake@log)
 
 library(Seurat)
 library(scRepertoire)
 
+# Patch for v1.12 until Bioconda has v2 with Bioconductor 3.19
+checkList <- getFromNamespace("checkList", "scRepertoire")
+parse10x <- getFromNamespace("pasrse10x", "scRepertoire")
+
+loadContigs <- function(dir, format = "10X") {
+    df <- checkList(dir)
+    return(parse10x(df))
+}
+
 contigs <- snakemake@input[["tcr"]] |>
     lapply(read.csv) |>
-    loadContigs()
+    loadContigs(format = "10X")
 
 clones <- combineTCR(
     contigs,
@@ -14,17 +23,11 @@ clones <- combineTCR(
     filterMulti = snakemake@params[["filter_chains"]]
 )
 
-seurat <- readRDS(snakemake@input[["seurat"]])
+for (i in seq_along(clones)) {
+    clones[[i]]$patient_id <- snakemake@params[["patient_id"]][[i]]
+    clones[[i]]$condition <- snakemake@params[["condition"]][[i]]
+}
 
-seurat <- combineExpression(
-    clones,
-    seurat,
-    cloneCall = "gene",
-    chain = "both",
-    proportion = TRUE
-)
+assay <- list(contigs = contigs, clones = clones)
 
-seurat@misc[["tcr_contigs"]] <- contigs
-seurat@misc[["tcr_clones"]] <- clones
-
-saveRDS(seurat, snakemake@output[["seurat"]])
+saveRDS(assay, snakemake@output[["assay"]])

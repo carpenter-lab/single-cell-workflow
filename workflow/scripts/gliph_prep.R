@@ -1,4 +1,3 @@
-
 snakemake@source("functions.R")
 SinkAllOutput(snakemake@log)
 
@@ -8,7 +7,7 @@ library(SeuratObject)
 
 seurat <- readRDS(snakemake@input[["seurat"]])
 
-data <- seurat[[c("CTgene", "CTaa", "clonalFrequency", "patient_id", "condition")]]
+data <- seurat[[c("CTgene", "CTaa", "Frequency", "patient_id", "condition")]]
 
 data |>
     mutate(
@@ -17,6 +16,6 @@ data |>
         "subject:condition" = glue("{patient_id}:{condition}")
     ) |>
     separate(CTaa, into = c("CDR3a", "CDR3b")) |>
-    select(CDR3b, TRBV, TRBJ, CDR3a, "subject:condition", count = clonalFrequency) |>
+    select(CDR3b, TRBV, TRBJ, CDR3a, "subject:condition", count = Frequency) |>
     filter(!is.na(CDR3b)) |>
     write_tsv(snakemake@output[["tsv"]])

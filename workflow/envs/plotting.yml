@@ -1,0 +1,15 @@
+name: smk-plotting
+channels:
+  - conda-forge
+  - bioconda
+  - r
+dependencies:
+  - r-base=4.3
+  - r-seurat=5.1
+  - r-tidyverse
+  - r-patchwork
+  - r-rlang
+  - r-cli
+  - r-withr
+  - r-scpubr
+  - r-viridis

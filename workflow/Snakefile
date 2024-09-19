@@ -14,26 +14,48 @@ pepschema: "schema.yml"
 
 config["pep"] = pep
 
+
 module preprocessing:
-    snakefile: "rules/seurat_preprocessing.smk"
-    config: config
+    snakefile:
+        "rules/seurat_preprocessing.smk"
+    config:
+        config
+
 
 module differential_expression:
-    snakefile: "rules/differential_expression.smk"
-    config: config
+    snakefile:
+        "rules/differential_expression.smk"
+    config:
+        config
+
 
 module plotting:
-    snakefile: "rules/plotting.smk"
-    config: config
+    snakefile:
+        "rules/plotting.smk"
+    config:
+        config
+
 
 module clustering:
-    snakefile: "rules/clustering.smk"
-    config: config
+    snakefile:
+        "rules/clustering.smk"
+    config:
+        config
 
-use rule * from preprocessing
-use rule * from clustering
-use rule * from differential_expression
-use rule * from plotting
+
+module tcr_dist:
+    snakefile:
+        "rules/tcr_dist.smk"
+    config:
+        config
+
+
+module gliph:
+    snakefile:
+        "rules/gliph.smk"
+    config:
+        config
+
 
 rule all:
     input:
@@ -48,6 +70,30 @@ rule all:
         ).create_path_list(),
         WorkflowResults(
             config["differential_expression"]["params"],
-            "results/de/{subset}/{assay}/{group}_markers.{ext}",
-            ext=["tsv"],
+            "results/de/{subset}/plots/{assay}/heatmap_by_{group}.png",
         ).create_path_list(),
+        WorkflowResults(
+            config["differential_expression"]["params"],
+            "results/de/{subset}/{assay}/{group}_markers.{ext}",
+            ext=["tsv", "html"],
+        ).create_path_list(),
+        "results/tcr_dist/nn_summary.csv",
+        "results/gliph/results",
+
+
+use rule * from preprocessing
+
+
+use rule * from clustering
+
+
+use rule * from differential_expression
+
+
+use rule * from plotting
+
+
+use rule * from tcr_dist
+
+
+use rule * from gliph

@@ -2,8 +2,6 @@ snakemake@source("functions.R")
 SinkAllOutput(snakemake@log)
 
 library(Seurat)
-library(scRepertoire)
-library(Trex)
 
 options(future.globals.maxSize = 4 * 1024^3)
 

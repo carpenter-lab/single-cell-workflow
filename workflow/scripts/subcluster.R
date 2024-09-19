@@ -6,7 +6,8 @@ library(rlang)
 
 
 SubsetByTCR <- function(seurat, ...) {
-    subset(seurat, cells = WhichCells(seurat, expression = clonalFrequency >= 1))
+    seurat[["t_cell_receptor"]] <- !is.na(seurat$CTaa)
+    subset(seurat, cells = WhichCells(seurat, expression = t_cell_receptor))
 }
 
 SubsetByIdent <- function(seurat, ident_use, idents_keep, ...) {

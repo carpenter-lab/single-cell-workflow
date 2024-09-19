@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+
 import hashlib
 import os
 import pathlib
 import pickle
+import subprocess
+import urllib
 from typing import Optional, Self
 
 import click
@@ -162,11 +166,29 @@ def setup_google_drive():
 def run_workflow(cores, report, gdrive_name, gdrive):
     try:
         import panoptes
+        urllib.request.urlopen("http://127.0.0.1:5000", timeout=1)
         opts = ["--wms-monitor", "http://127.0.0.1:5000"]
     except ModuleNotFoundError:
         opts = []
+    except urllib.error.URLError:
+        opts = []
+
     try:
-        main(["-c", str(cores), "--resources", "mem_mb=30000", "-k", *opts])
+        sbatch_ready = subprocess.run(["sbatch", "--version"], stdout=subprocess.DEVNULL)
+    except FileNotFoundError:
+        sbatch_ready = False
+
+    if pathlib.Path("profiles/slurm").exists() and sbatch_ready:
+        profile_args = ["--profile", "profiles/slurm"]
+    elif pathlib.Path("profiles/local").exists():
+        profile_args = ["--profile", "profiles/local"]
+    else:
+        profile_args = ["-c", str(cores)]
+
+    opts.extend(profile_args)
+
+    try:
+        main(opts)
     except SystemExit as e:
         if e.code != 0:
             raise e

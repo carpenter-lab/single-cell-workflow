@@ -3,7 +3,6 @@ SinkAllOutput(snakemake@log)
 
 library(Seurat)
 library(scRepertoire)
-library(Trex)
 
 options(future.globals.maxSize = 4 * 1024^3)
 
@@ -19,7 +18,9 @@ if (snakemake@params[["method"]] == "sctransform") {
 seurat <- CellCycleScoring(
     seurat,
     g2m.features = cc.genes.updated.2019$g2m.genes,
-    s.features = cc.genes.updated.2019$s.genes
+    s.features = cc.genes.updated.2019$s.genes,
+    search = TRUE,
+    nbin = 12
 )
 
 seurat[["cell_cycle_diff"]] <- seurat[["S.Score"]] - seurat[["G2M.Score"]]

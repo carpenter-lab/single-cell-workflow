@@ -158,9 +158,9 @@ def get_category_name(wildcards: dict) -> str:
 def get_proper_clustering_output(config, rules) -> Callable:
     def _get_proper_clustering_output(wildcards):
         if wildcards["subset"] == config["subcluster"].get("all_data_key"):
-            return rules.annotate_tcr_seurat.output.seurat
+            return "results/gliph/labelled_tcr.rds"
         else:
-            return rules.cluster.output.seurat
+            return "results/clustering/{subset}.rds"
 
     return _get_proper_clustering_output
 
@@ -181,7 +181,7 @@ def get_subcluster_params(config: dict) -> list[dict]:
     return [flatten_dict(d) for d in config["subcluster"]["subclusters"]]
 
 
-def unzip_dict(d: dict) -> dict:
+def unzip_dict(d: dict) -> Generator[dict, None, None]:
     keys = [k for k, v in d.items() if isinstance(v, list)]
     values = [d[k] for k in keys]
 

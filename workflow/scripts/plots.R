@@ -106,8 +106,8 @@ DotPlot <- function(seurat, features, group_by = NULL, assay = NULL, ...) {
     )
 }
 
-Heatmap <- function(seurat, group_by, ...) {
-    Seurat::DoHeatmap(seurat, group.by = group_by)
+Heatmap <- function(seurat, group_by, features = NULL, ...) {
+    Seurat::DoHeatmap(seurat, group.by = group_by, features = features)
 }
 
 PlotMethod <- function(type) {
@@ -129,6 +129,14 @@ params <- c(snakemake@wildcards, snakemake@params)
 named_params <- params[names(params) != ""]
 valid_params <- named_params[named_params != "None"]
 
+if ("de" %in% names(snakemake@input)) {
+    de <- read_tsv(snakemake@input[["de"]])
+    features <- de |>
+        group_by(cluster) |>
+        slice_max(order_by = avg_log2FC, n = 30) |>
+        pull(gene)
+    valid_params[["features"]] <- features
+}
 
 plot <- PlotMethod(named_params[["plot"]])(seurat, !!!valid_params) +
     plot_annotation(

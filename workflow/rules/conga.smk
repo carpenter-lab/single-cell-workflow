@@ -1,14 +1,16 @@
-#!/usr/bin/env bash
 import pandas as pd
 
 pep = config["pep"]
+
+
 rule install_conga:
     output:
         conga=directory("resources/conga"),
         setup="resources/conga/scripts/setup_10x_for_conga.py",
         merge="resources/conga/scripts/merge_samples.py",
-        run="resources/conga/scripts/run_conga.py"
-    conda: "../envs/conga.yml"
+        run="resources/conga/scripts/run_conga.py",
+    conda:
+        "../envs/conga.yml"
     shell:
         """
         git clone https://github.com/phbradley/conga.git {output.conga}
@@ -23,15 +25,19 @@ rule install_conga:
         """
 
 
-pep.sample_table["clones"] = [f"results/conga/clones/{sn}.tsv" for sn in pep.sample_table.sample_name]
+pep.sample_table["clones"] = [
+    f"results/conga/clones/{sn}.tsv" for sn in pep.sample_table.sample_name
+]
+
 
 rule setup_conga:
     input:
         tcr=pep.sample_table.tcr_path,
         setup=rules.install_conga.output.setup,
     output:
-        clones=pep.sample_table.clones
-    conda: "../envs/conga.yml"
+        clones=pep.sample_table.clones,
+    conda:
+        "../envs/conga.yml"
     shell:
         """
         tcr=({input.tcr})
@@ -46,23 +52,26 @@ rule setup_conga:
         done
         """
 
+
 rule merge_prep:
     input:
         clones=pep.sample_table.clones,
-        gex=pep.sample_table.gex_path
+        gex=pep.sample_table.gex_path,
     output:
-        tsv="results/conga/merge.txt"
-    script: "../scripts/conga_merge_file_prep.py"
+        tsv="results/conga/merge.txt",
+    script:
+        "../scripts/conga_merge_file_prep.py"
 
 
 rule merge:
     input:
         tsv=rules.merge_prep.output.tsv,
-        merge=rules.install_conga.output.merge
+        merge=rules.install_conga.output.merge,
     output:
         clones="results/conga/clones.tsv",
-        gex="results/conga/gex.h5ad"
-    conda: "../envs/conga.yml"
+        gex="results/conga/gex.h5ad",
+    conda:
+        "../envs/conga.yml"
     shell:
         """
         python {input.merge} \
@@ -72,15 +81,17 @@ rule merge:
             --organism human
         """
 
+
 rule run_conga:
     input:
         gex=rules.merge.output.gex,
         clones=rules.merge.output.clones,
-        exe=rules.install_conga.output.run
+        exe=rules.install_conga.output.run,
     output:
         x=directory("results/conga/results"),
-        log="results/conga/results/x_log.txt"
-    conda: "../envs/conga.yml"
+        log="results/conga/results/x_log.txt",
+    conda:
+        "../envs/conga.yml"
     shell:
         """
         touch {output.log}

@@ -1,4 +1,4 @@
-name: smk-seurat
+name: smk-differential-expression
 channels:
   - conda-forge
   - bioconda
@@ -7,12 +7,8 @@ dependencies:
   - r-seurat=5.1
   - r-hdf5r
   - bioconductor-glmgampoi
-  - bioconductor-screpertoire
   - r-tidyverse
-  - r-patchwork
-  - r-glue
   - r-data.table
-  - r-foreach
-  - r-rlang
-  - r-cli
-  - r-harmony
+  - bioconductor-mast
+  - r-presto
+  - bioconductor-deseq2

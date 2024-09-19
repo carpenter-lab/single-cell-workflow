@@ -16,11 +16,15 @@ rule differential_expression:
     output:
         markers="results/de/{subset}/{assay}/{grouping}_markers.tsv",
     threads: lambda wildcards: 1 if wildcards.assay == "ADT" else min(workflow.cores / 2, 4)
+    resources:
+        mem=lambda wildcards: "10G" if wildcards.assay == "ADT" else "20G",
+        runtime="6h",
     log:
         "logs/de/{subset}/{assay}/{grouping}.log",
-    conda: "envs/seurat.yml"
+    conda:
+        "../envs/differential_expression.yml"
     script:
-        "scripts/differential_expression.R"
+        "../scripts/differential_expression.R"
 
 
 rule table_to_html:
@@ -38,6 +42,7 @@ rule table_to_html:
         ),
     log:
         "logs/de/{subset}/{assay}/html_{grouping}.log",
-    conda: "envs/datatables_js.yml"
+    conda:
+        "../envs/datatables_js.yml"
     script:
-        "scripts/dataframe_to_DataTables.R"
+        "../scripts/dataframe_to_DataTables.R"

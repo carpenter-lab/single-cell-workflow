@@ -20,7 +20,7 @@ seurat <- tryCatch(
 )
 
 if (snakemake@params[["assay"]] == "SCT") {
-    seurat <- PrepSCTFindMarkers(seurat, verbose = !FALSE)
+    seurat <- PrepSCTFindMarkers(seurat, verbose = FALSE)
 }
 
 params <- c(snakemake@wildcards, snakemake@params)

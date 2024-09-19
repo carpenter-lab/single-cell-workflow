@@ -2,8 +2,6 @@ snakemake@source("functions.R")
 SinkAllOutput(snakemake@log)
 
 library(Seurat)
-library(scRepertoire)
-library(Trex)
 
 seurat <- readRDS(snakemake@input[["seurat"]])
 

@@ -1,15 +1,18 @@
+import os
 
-rule gliph_prep1:
+rule gliph_prep:
     input:
-        seurat=rules.filter.output.seurat,
+        seurat="results/seurat_objects/all_data.rds",
     output:
         tsv="results/gliph/input_tcr.tsv",
-    conda: "envs/seurat.yml"
+    conda:
+        "../envs/seurat.yml"
     script:
-        "scripts/gliph_prep.R"
+        "../scripts/gliph_prep.R"
 
 
 rule download_gliph:
+    localrule: True
     output:
         "resources/gliph",
     shell:
@@ -30,8 +33,9 @@ rule download_gliph:
 
 
 rule download_gliph_reference:
+    localrule: True
     output:
-        directory("resources/gliph_ref"),
+        ref=directory("resources/gliph_ref"),
     shell:
         """
         temp=$(mktemp -t "gliph.XXXXXXXX.zip")
@@ -43,13 +47,30 @@ rule download_gliph_reference:
         """
 
 
+rule render_gliph_template:
+    input:
+        "workflow/templates/gliph.txt",
+    params:
+        input_tcr=rules.gliph_prep.output.tsv,
+        ref=rules.download_gliph_reference.output.ref,
+        pwd=os.path.abspath(os.curdir)
+    output:
+        temp("results/gliph/config.txt"),
+    group:
+        "configure_run_gliph"
+    template_engine:
+        "jinja2"
+
+
 rule run_gliph:
     input:
         executable=rules.download_gliph.output,
-        input_tcr=rules.gliph_prep1.output.tsv,
-        ref=rules.download_gliph_reference.output,
+        input_tcr=rules.gliph_prep.output.tsv,
+        ref=rules.download_gliph_reference.output.ref,
+        config_file=temp("results/gliph/config.txt"),
     output:
         prefix=directory("results/gliph/results"),
-        config_file=temp("results/gliph/config.txt"),
+    group:
+        "configure_run_gliph"
     script:
-        "scripts/run_gliph.sh"
+        "../scripts/run_gliph.sh"

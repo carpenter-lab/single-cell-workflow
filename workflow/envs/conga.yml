@@ -1,3 +1,4 @@
+name: smk-conga
 channels:
   - conda-forge
   - bioconda

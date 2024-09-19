@@ -38,9 +38,10 @@ rule qc_plot:
         ),
     log:
         "logs/qc/{type}_plot.log",
-    conda: "envs/seurat.yml"
+    conda:
+        "../envs/plotting.yml"
     script:
-        "scripts/plots.R"
+        "../scripts/plots.R"
 
 
 use rule qc_plot as umap_plot with:
@@ -84,6 +85,7 @@ use rule qc_plot as dot_plot with:
 use rule qc_plot as heatmap with:
     input:
         seurat=get_proper_clustering_output(config, rules),
+        de="results/de/{subset}/{assay}/{group_by}_markers.tsv",
     params:
         title=PlotTitle("heatmap").make_title,
         subtitle=make_plot_subtitle,
@@ -96,6 +98,6 @@ use rule qc_plot as heatmap with:
             labels=report_plot_labels,
         ),
     resources:
-        mem_mb=5*1024
+        mem="5GB",
     log:
         "logs/de/{subset}/plots/{assay}/heatmap_by_{group_by}.log",

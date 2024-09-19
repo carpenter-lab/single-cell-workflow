@@ -1,3 +1,5 @@
+snakemake@source("functions.R")
+SinkAllOutput(snakemake@log)
 
 library(Seurat)
 library(dplyr)
@@ -7,7 +9,7 @@ library(stringr)
 
 seurat <- readRDS(snakemake@input[["seurat"]])
 
-data <- seurat[[c("CTgene", "CTaa", "clonalFrequency", "patient_id", "condition")]]
+data <- seurat[[c("CTgene", "CTaa", "Frequency", "patient_id", "condition")]]
 
 data |>
     as_tibble() |>
@@ -25,7 +27,7 @@ data |>
         v_a_gene = TRAV, j_a_gene = TRAJ,
         subject = patient_id,
         condition,
-        count = clonalFrequency
+        count = Frequency
     ) |>
     filter(!is.na(cdr3_b_aa)) |>
     write_csv(snakemake@output[["csv"]])
