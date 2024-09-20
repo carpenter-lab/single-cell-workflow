@@ -1,5 +1,8 @@
 out_prefix=x
 cdr3_file={{ params.pwd }}/{{ params.input_tcr }}
+{% if params.hla_file -%}
+    hla_file={{ params.pwd }}/{{ params.hla_file }}
+{% endif -%}
 refer_file={{ params.pwd }}/{{ params.ref }}/ref_CD4_v2.0.txt
 v_usage_freq_file={{ params.pwd }}/{{ params.ref }}/ref_V_CD4_v2.0.txt
 cdr3_length_freq_file={{ params.pwd }}/{{ params.ref }}/ref_L_CD4_v2.0.txt

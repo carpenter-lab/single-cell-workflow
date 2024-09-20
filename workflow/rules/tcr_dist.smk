@@ -1,18 +1,25 @@
+pep = config["pep"]
 
-rule prep:
+rule tcrdist_prep:
     input:
-        seurat="results/seurat_objects/all_data.rds",
+        tcr=pep.sample_table.tcr_path,
+    params:
+        sample_name=pep.sample_table.sample_name,
+        filter_chains=False,
+        patient_id=pep.sample_table.patient_id,
+        condition=pep.sample_table.condition,
+        tool="tcrdist"
     output:
         csv="results/tcr_dist/input_tcr.csv",
+    log: "logs/tcrdist_prep.log"
     conda:
         "../envs/seurat.yml"
     script:
-        "../scripts/tcrdist_prep.R"
-
+        "../scripts/tcr_metacluster_prep.R"
 
 rule run_tcrdist:
     input:
-        csv=rules.prep.output.csv,
+        csv=rules.tcrdist_prep.output.csv,
     output:
         quasi_public="results/tcr_dist/quasi_public.csv",
         clone_df="results/tcr_dist/clone_df.csv",

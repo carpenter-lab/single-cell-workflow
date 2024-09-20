@@ -1,3 +1,4 @@
+name: smk-tcrdist
 channels:
   - conda-forge
   - bioconda
