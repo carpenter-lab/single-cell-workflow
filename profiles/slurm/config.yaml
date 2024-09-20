@@ -15,4 +15,4 @@ shared-fs-usage:
   - sources
   - source-cache
 remote-job-local-storage-prefix: "$TMPDIR"
-local-storage-prefix: "/fs/scratch/$(id -gn $USER)/$USER"
+local-storage-prefix: "/fs/scratch/PDS0353/$USER"
