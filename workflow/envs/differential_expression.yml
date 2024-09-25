@@ -2,6 +2,7 @@ name: smk-differential-expression
 channels:
   - conda-forge
   - bioconda
+  - rschauner
 dependencies:
   - r-base=4.3
   - r-seurat=5.1
@@ -12,3 +13,4 @@ dependencies:
   - bioconductor-mast
   - r-presto
   - bioconductor-deseq2
+  - r-bpcells

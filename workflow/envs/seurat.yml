@@ -2,6 +2,7 @@ name: smk-seurat
 channels:
   - conda-forge
   - bioconda
+  - rschauner
 dependencies:
   - r-base=4.3
   - r-seurat=5.1
@@ -16,3 +17,5 @@ dependencies:
   - r-rlang
   - r-cli
   - r-harmony
+  - r-remotes
+  - r-bpcells

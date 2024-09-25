@@ -4,6 +4,7 @@ from common import get_subcluster_params
 rule integrate:
     input:
         seurat="results/pca/{subset}/object.rds",
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     output:
         seurat="results/integration/{subset}.rds",
     threads: 4
@@ -18,6 +19,7 @@ rule integrate:
 rule cluster:
     input:
         seurat="results/integration/{subset}.rds",
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         assay="SCT",
         reductions=["pca", "harmony"],
@@ -37,6 +39,7 @@ rule run_azimuth:
             rules.cluster.output.seurat,
             subset=config["subcluster"].get("all_data_key"),
         ),
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         reference="lungref",
     output:
@@ -56,6 +59,7 @@ rule annotate_tcr_seurat:
             rules.cluster.output.seurat,
             subset=config["subcluster"].get("all_data_key"),
         ),
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         tcr_patterns={
             "TB": [
@@ -90,6 +94,7 @@ rule annotate_tcr_seurat:
 rule subcluster:
     input:
         seurat=rules.annotate_tcr_seurat.output.seurat,
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         *get_subcluster_params(config),
     output:

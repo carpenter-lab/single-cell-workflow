@@ -2,9 +2,11 @@ __use_yte__: true
 __definitions__:
   - from itertools import product
 preprocessing:
+  use_bpcells: true
   normalisation:
     method: "sctransform"
     vars_to_regress: null
+  assays: ["ADT", "RNA", "TCR"]
 subcluster:
   all_data_key: "all_data"
   subclusters:

@@ -9,6 +9,7 @@ from common import (
 rule differential_expression:
     input:
         seurat=get_proper_clustering_output(config, rules),
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         assay="{assay}",
         idents="{grouping}",
