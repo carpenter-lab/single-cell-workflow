@@ -8,18 +8,6 @@ library(cli)
 options(error = rlang::entrace)
 
 
-withr::with_options(
-    list(rlang_backtrace_on_error = "none"),
-    if (length(snakemake@output) > 1) {
-        cli_abort(c(
-            "This script only accepts 1 output file.",
-            "x" = "{length(snakemake@output)} output files detected",
-            "i" = "Please set `output` in the Snakemake rule to only one file."
-        ))
-    }
-)
-
-
 QCPlot <- function(seurat, ...) {
     p1 <- Seurat::FeatureScatter(seurat, feature1 = "nCount_RNA", feature2 = "percent.mt")
     p2 <- Seurat::FeatureScatter(seurat, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
@@ -110,6 +98,11 @@ Heatmap <- function(seurat, group_by, features = NULL, ...) {
     Seurat::DoHeatmap(seurat, group.by = group_by, features = features)
 }
 
+DEPlot <- function(seurat, de_table, n_genes = 5, ...) {
+    title <- glue::glue("Top {n_genes} DE Features per group")
+    SCpubr::do_GroupwiseDEPlot(sample = seurat, de_genes = de_table, top_genes = n_genes)
+}
+
 PlotMethod <- function(type) {
     fun <- switch(
         type,
@@ -118,7 +111,8 @@ PlotMethod <- function(type) {
         split = SplitDimPlot,
         cell_type = MultiCellTypeAnnDimPlot,
         dot = DotPlot,
-        heatmap = Heatmap
+        heatmap = Heatmap,
+        de_plot = DEPlot
     )
     function(...) do.call(fun, list2(...))
 }
@@ -136,6 +130,7 @@ if ("de" %in% names(snakemake@input)) {
         slice_max(order_by = avg_log2FC, n = 30) |>
         pull(gene)
     valid_params[["features"]] <- features
+    valid_params[["de_table"]] <- de
 }
 
 plot <- PlotMethod(named_params[["plot"]])(seurat, !!!valid_params) +
@@ -144,8 +139,10 @@ plot <- PlotMethod(named_params[["plot"]])(seurat, !!!valid_params) +
         subtitle = valid_params[["subtitle"]]
     )
 
-ggsave(
-    filename = snakemake@output[[1]],
-    plot = plot,
-    width = 14, height = 10, dpi = 600
-)
+for (f in snakemake@output) {
+    ggsave(
+        filename = f,
+        plot = plot,
+        width = 14, height = 14, dpi = 600
+    )
+}

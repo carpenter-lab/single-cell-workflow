@@ -13,3 +13,4 @@ dependencies:
   - r-withr
   - r-scpubr
   - r-viridis
+  - r-svglite

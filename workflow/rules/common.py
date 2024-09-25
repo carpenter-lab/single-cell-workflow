@@ -98,6 +98,8 @@ class PlotTitle:
                 return "UMAP"
             case "heatmap":
                 return "Heatmap"
+            case "de_plot":
+                return "Group wise DE Plot"
             case _:
                 return "No Title Can Be Created"
 

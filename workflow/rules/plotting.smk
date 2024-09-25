@@ -8,6 +8,7 @@ from common import (
     make_plot_subtitle,
 )
 
+PLOT_FILE_TYPES=["pdf", "svg"]
 
 def qc_plot_title(wildcards):
     if wildcards["type"] == "pre":
@@ -26,6 +27,7 @@ def qc_plot_input(wildcards):
 rule qc_plot:
     input:
         seurat=qc_plot_input,
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         title=qc_plot_title,
         plot="qc",
@@ -36,6 +38,7 @@ rule qc_plot:
             subcategory="Quality Control",
             labels=report_plot_labels,
         ),
+        expand("results/qc/{{type}}_qc_plot.{ext}", ext=PLOT_FILE_TYPES)
     log:
         "logs/qc/{type}_plot.log",
     conda:
@@ -47,6 +50,7 @@ rule qc_plot:
 use rule qc_plot as umap_plot with:
     input:
         seurat=get_proper_clustering_output(config, rules),
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         title=PlotTitle(get_plot_type).make_title,
         subtitle=make_plot_subtitle,
@@ -59,6 +63,7 @@ use rule qc_plot as umap_plot with:
             subcategory="Clustering",
             labels=report_plot_labels,
         ),
+        expand("results/clustering/{{subset}}/plots/{{assay}}/{{reduction_use}}/{{group_by}}_split_{{split_by}}.{ext}", ext=PLOT_FILE_TYPES)
     log:
         "logs/umap_plots/{subset}/{assay}/{reduction_use}/{group_by}_split_{split_by}.log",
 
@@ -66,6 +71,7 @@ use rule qc_plot as umap_plot with:
 use rule qc_plot as dot_plot with:
     input:
         seurat=get_proper_clustering_output(config, rules),
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         title=PlotTitle("dot").make_title,
         subtitle=make_plot_subtitle,
@@ -78,6 +84,7 @@ use rule qc_plot as dot_plot with:
             subcategory="Differential Expression",
             labels=report_plot_labels,
         ),
+        expand("results/de/{{subset}}/plots/{{assay}}/dot_plot_by_{{group_by}}.{ext}", ext=PLOT_FILE_TYPES)
     log:
         "logs/de/{subset}/plots/{assay}/dot_plot_by_{group_by}.log",
 
@@ -86,6 +93,7 @@ use rule qc_plot as heatmap with:
     input:
         seurat=get_proper_clustering_output(config, rules),
         de="results/de/{subset}/{assay}/{group_by}_markers.tsv",
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         title=PlotTitle("heatmap").make_title,
         subtitle=make_plot_subtitle,
@@ -97,7 +105,30 @@ use rule qc_plot as heatmap with:
             subcategory="Differential Expression",
             labels=report_plot_labels,
         ),
+        expand("results/de/{{subset}}/plots/{{assay}}/heatmap_by_{{group_by}}.{ext}", ext=PLOT_FILE_TYPES)
     resources:
-        mem="5GB",
+        mem="15GB",
     log:
         "logs/de/{subset}/plots/{assay}/heatmap_by_{group_by}.log",
+
+use rule qc_plot as de_plot with:
+    input:
+        seurat=get_proper_clustering_output(config, rules),
+        de="results/de/{subset}/{assay}/{group_by}_markers.tsv",
+        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+    params:
+        title=PlotTitle("de_plot").make_title,
+        subtitle=make_plot_subtitle,
+        plot="de_plot",
+    output:
+        report(
+            "results/de/{subset}/plots/{assay}/de_plot_by_{group_by}.png",
+            category=get_category_name,
+            subcategory="Differential Expression",
+            labels=report_plot_labels,
+        ),
+        expand("results/de/{{subset}}/plots/{{assay}}/de_plot_{{group_by}}.{ext}", ext=PLOT_FILE_TYPES)
+    resources:
+        mem="15GB",
+    log:
+        "logs/de/{subset}/plots/{assay}/de_plot_by_{group_by}.log",
