@@ -1,2 +1,2 @@
 use-conda: true
-cores: $(python -c "import multiprocessing; print(multiprocessing.cpu_count() - 2)")
+cores: 1

@@ -1,7 +1,6 @@
 executor: slurm
 jobs: 80
 latency-wait: 60
-default-storage-provider: fs
 use-conda: true
 
 default-resources:
@@ -9,10 +8,5 @@ default-resources:
   runtime: 1h
   mem: 10GB
 
-shared-fs-usage:
-  - persistence
-  - software-deployment
-  - sources
-  - source-cache
 remote-job-local-storage-prefix: "$TMPDIR"
 local-storage-prefix: "/fs/scratch/PDS0353/$USER"
