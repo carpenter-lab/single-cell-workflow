@@ -1,15 +1,6 @@
 pep = config["pep"]
 
 
-rule run_preprocessing:
-    input:
-        expand("results/qc/{type}_qc_plot.png", type=["pre", "post"]),
-        expand(
-            "results/pca/{subset}/object.rds",
-            subset=config["subcluster"].get("all_data_key"),
-        ),
-
-
 rule import_rna:
     input:
         h5=pep.sample_table.gex_path,
