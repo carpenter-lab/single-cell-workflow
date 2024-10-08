@@ -4,6 +4,9 @@ from rules.common import WorkflowResults
 min_version("3.7")
 
 
+container: "docker://continuumio/miniconda3:4.4.10"
+
+
 configfile: "config/config.yml"
 
 
