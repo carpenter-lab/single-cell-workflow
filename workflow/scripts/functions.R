@@ -7,3 +7,5 @@ SinkAllOutput <- function(log, .envir = parent.frame()) {
     sink(sink_connection, append = TRUE, type = "message")
     return(invisible(NULL))
 }
+
+saveRDS <- function(...) base::saveRDS(..., compress = FALSE)
