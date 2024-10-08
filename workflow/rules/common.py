@@ -1,3 +1,4 @@
+import textwrap
 from collections.abc import MutableMapping
 from itertools import chain, product
 from typing import Any, Callable, Generator, Optional, Self
@@ -25,6 +26,7 @@ class DefaultLabels(dict):
     split: Optional[str]
     assay: Optional[str]
     reduction: Optional[str]
+    type: Optional[str]
 
     @classmethod
     def create(
@@ -34,6 +36,7 @@ class DefaultLabels(dict):
         split="No Split",
         assay="Undefined",
         reduction="Undefined",
+        type="Undefined"
     ) -> Self:
         return DefaultLabels(
             title=title,
@@ -41,29 +44,50 @@ class DefaultLabels(dict):
             split=split,
             assay=assay,
             reduction=reduction,
+            type=type
         )
 
 
 def report_plot_labels(wildcards: dict, params: dict) -> DefaultLabels:
     labels = DefaultLabels()
 
-    if valid_dict_key(params, "title"):
-        labels["title"] = params.get("title")
+    if valid_dict_key(params, "plot"):
+        labels["type"] = PlotTitle.human_readable_plot_type(params.get("plot"))
+        if valid_dict_key(wildcards, "type"):
+            labels["type"] = wildcards["type"] + "-" + labels["type"]
 
     if valid_dict_key(wildcards, "grouping"):
         labels["grouping"] = wildcards.get("grouping")
 
     if valid_dict_key(wildcards, "group_by"):
+        labels["grouping"] = wildcards.get("group_by")
+        
         if valid_dict_key(wildcards, "split_by"):
             labels["split"] = wildcards.get("split_by")
-
-        labels["grouping"] = wildcards.get("group_by")
-
-    if valid_dict_key(params, "reduction"):
-        labels["reduction"] = params.get("reduction")
-
+            
+            if labels["split"] == labels["grouping"]:
+                labels["split"] = "grouping"
+        
+    
     if valid_dict_key(wildcards, "assay"):
         labels["assay"] = wildcards.get("assay")
+    
+    if valid_dict_key(params, "reduction"):
+        labels["reduction"] = params.get("reduction")
+        
+        if valid_dict_key(labels, "assay"):
+            if labels.get("assay") in labels.get("reduction"):
+                labels["reduction"].replace(f"{labels.get('assay')}_", "")
+        
+        if valid_dict_key(labels, "grouping"):
+            if "clusters" in labels.get("grouping"):
+                if "label" in labels.get("grouping"):
+                    labels["grouping"] = "cluster labels"
+                else:
+                    labels["grouping"] = "clusters"
+
+    for k, v in labels.items():
+        labels[k] = v.replace("_", " ")
 
     return labels
 
@@ -79,29 +103,36 @@ def get_plot_type(wildcards: dict) -> str:
         and "predicted.ann" in wildcards["group_by"]
     ):
         return "cell_type"
+    elif wildcards["split_by"] is None:
+        return "cluster"
     else:
-        return "split"
+        return "cluster"
 
 
 class PlotTitle:
     def __init__(self, plot_type):
         self.plot_type = plot_type
-
-    def _plot_title_type(self, wildcards) -> str:
-        if isinstance(self.plot_type, Callable):
-            self.plot_type = self.plot_type(wildcards)
-
-        match self.plot_type:
+        
+    @staticmethod
+    def human_readable_plot_type(plot_type):
+        match plot_type:
             case "dot":
                 return "Dot Plot"
             case "cluster" | "split" | "cell_type":
-                return "UMAP"
+                return "DimPlot"
             case "heatmap":
                 return "Heatmap"
             case "de_plot":
                 return "Group wise DE Plot"
             case _:
                 return "No Title Can Be Created"
+                
+
+    def _plot_title_type(self, wildcards) -> str:
+        if isinstance(self.plot_type, Callable):
+            self.plot_type = self.plot_type(wildcards)
+
+        return self.human_readable_plot_type(self.plot_type)
 
     def make_title(self, wildcards):
         assay = wildcards["assay"]
@@ -159,7 +190,7 @@ def get_category_name(wildcards: dict) -> str:
 
 def get_proper_clustering_output(config, rules) -> Callable:
     def _get_proper_clustering_output(wildcards):
-        if wildcards["subset"] == config["subcluster"].get("all_data_key"):
+        if wildcards["subset"] == config["cluster"].get("all_data_key"):
             return "results/gliph/labelled_tcr.rds"
         else:
             return "results/clustering/{subset}.rds"
@@ -179,8 +210,8 @@ def flatten_dict(d: MutableMapping) -> dict:
     return dict(_flatten_dict_gen(d))
 
 
-def get_subcluster_params(config: dict) -> list[dict]:
-    return [flatten_dict(d) for d in config["subcluster"]["subclusters"]]
+def get_subcluster_params(config: dict) -> Optional[list[dict]]:
+    return [flatten_dict(d) for d in config["cluster"]["subclusters"]]
 
 
 def unzip_dict(d: dict) -> Generator[dict, None, None]:
@@ -221,12 +252,26 @@ class WorkflowResults:
     def __init__(self, config, file_path, ext=None):
         self.config = config
         self.file_path = file_path
-        self.group_by = config["group_by"]
-        self.group_by_yte_only = config.get("group_by_yte_only", [])
-        self.assays = config["assays"]
-        self.reductions = config.get("reductions", [])
-        self.subsets = config.get("subsets", [])
-        self._extensions = ext
+
+        self.do_not_run = config is None
+
+        if not self.do_not_run:
+            self.group_by = config.get("group_by", [])
+            self.group_by_yte_only = config.get("group_by_yte_only", [])
+            self.assays = config.get("assays", [])
+            self.reductions = config.get("reductions", [])
+            self.subsets = config.get("subsets", [])
+            self._extensions = ext
+
+    def __str__(self):
+        string_rep = f"""
+        A WorkflowResults object on {len(self.subsets)} subset{"" if len(self.subsets) == 1 else "s"} with:
+        {len(self.group_by) + len(self.group_by_yte_only)} group by params
+        {len(self.assays)} assay{"" if len(self.assays) == 1 else "s"}
+        {len(self.reductions)} reduction{"" if len(self.reductions) == 1 else "s"}
+        And is {"not " if self.do_not_run else ""}set to run.
+        """
+        return textwrap.dedent(string_rep)
 
     @property
     def extensions(self):
@@ -308,6 +353,9 @@ class WorkflowResults:
                     path_list.append(init_path)
 
     def create_path_list(self):
+        if self.do_not_run:
+            return []
+
         params = self.combine_group_by_keys()
         path_list = list()
 

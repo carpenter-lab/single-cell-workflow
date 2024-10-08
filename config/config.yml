@@ -7,7 +7,7 @@ preprocessing:
     method: "sctransform"
     vars_to_regress: null
   assays: ["ADT", "RNA", "TCR"]
-subcluster:
+cluster:
   all_data_key: "all_data"
   subclusters:
     - name: t_cells
