@@ -1,10 +1,12 @@
-from common import get_subcluster_params
+from common import get_subcluster_params, valid_dict_key
 
 
 rule integrate:
     input:
         seurat="results/pca/{subset}/object.rds",
         matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+    params:
+        method="harmony"
     output:
         seurat="results/integration/{subset}.rds",
     threads: 4
@@ -33,32 +35,25 @@ rule cluster:
         "../scripts/cluster.R"
 
 
-rule run_azimuth:
+rule label_clusters:
     input:
         seurat=expand(
             rules.cluster.output.seurat,
-            subset=config["subcluster"].get("all_data_key"),
+            subset=config["cluster"].get("all_data_key"),
         ),
         matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
-        reference="lungref",
+        **config["cluster"].get("labels")
     output:
-        seurat="results/clustering/azimuth_annotation.rds",
-    log:
-        "logs/azimuth.log",
-    threads: 4
-    conda:
-        "../envs/seurat.yml"
-    script:
-        "../scripts/azimuth.R"
+        seurat=f"results/clustering/all_data/{config['cluster'].get('labels').get('new_group_by')}.rds"
+    conda: "../envs/seurat.yml",
+    log: "logs/clustering/label_clusters.log"
+    script: "../scripts/label_clusters.R"
 
 
 rule annotate_tcr_seurat:
     input:
-        seurat=expand(
-            rules.cluster.output.seurat,
-            subset=config["subcluster"].get("all_data_key"),
-        ),
+        seurat=rules.label_clusters.output.seurat,
         matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
     params:
         tcr_patterns={
