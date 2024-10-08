@@ -15,4 +15,7 @@ dependencies:
   - r-scpubr
   - r-viridis
   - r-svglite
+  - bioconductor-complexheatmap
+  - r-cairo
+  - r-ggplotify
   - r-bpcells

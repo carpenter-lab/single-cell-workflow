@@ -162,3 +162,33 @@ use rule qc_plot as de_plot with:
         mem="15GB",
     log:
         "logs/de/{subset}/plots/{assay}/de_plot_by_{group_by}.log",
+
+
+use rule qc_plot as cluster_cor_plot with:
+    input:
+        seurat=get_proper_clustering_output(config, rules),
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
+    params:
+        title=PlotTitle("cluster_cor").make_title,
+        plot="cluster_cor",
+        group_by="{assay}_{reduction_use}_clusters",
+    output:
+        report(
+            "results/clustering/{subset}/plots/{assay}/{reduction_use}/correlation.png",
+            category=get_category_name,
+            subcategory="Clustering",
+            labels=report_plot_labels,
+        ),
+        expand(
+            "results/clustering/{{subset}}/plots/{{assay}}/{{reduction_use}}/correlation.{ext}",
+            ext=PLOT_FILE_TYPES,
+        ),
+    resources:
+        mem="15GB",
+    threads: 4
+    log:
+        "logs/clustering/{subset}/plots/{assay}/{reduction_use}/correlation.log",

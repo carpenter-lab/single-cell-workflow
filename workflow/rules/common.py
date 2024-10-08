@@ -124,8 +124,12 @@ class PlotTitle:
                 return "Heatmap"
             case "de_plot":
                 return "Group wise DE Plot"
+            case "cluster_cor":
+                return "Cluster by Cluster Correlation Matrix"
             case "bar":
                 return "Bar Plot"
+            case "qc":
+                return "Quality Control Metrics"
             case _:
                 return "No Title Can Be Created"
                 

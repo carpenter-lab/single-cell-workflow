@@ -103,6 +103,53 @@ DEPlot <- function(seurat, de_table, n_genes = 5, ...) {
     SCpubr::do_GroupwiseDEPlot(sample = seurat, de_genes = de_table, top_genes = n_genes)
 }
 
+ClusterCorrelationPlot <- function(seurat, group_by, assay, ...) {
+    data <- Seurat::AverageExpression(seurat, assays = assay, group.by = group_by, layer = "scale.data")[[assay]]
+    data_cor <- data |> as.matrix() |> cor()
+
+    clus_freq <- seurat[[]] |>
+            group_by(across(all_of(group_by))) |>
+            summarise(n = n()) |>
+            mutate(n = n / sum(n)) |>
+            pull(n)
+
+    col_annotation <- ComplexHeatmap::HeatmapAnnotation(
+        "Cluster Frequency" = ComplexHeatmap::anno_barplot(
+            clus_freq,
+            bar_width = 0.8,
+            height = unit(100, "points"),
+            gp = grid::gpar(fill = "#68A691"),
+            axis_param = list(gp = grid::gpar(fontsize = 20))
+        ),
+        annotation_name_gp = grid::gpar(fontsize = 20),
+        gp = grid::gpar(fontsize = 20)
+    )
+
+    hm <- ComplexHeatmap::Heatmap(
+        data_cor,
+        col = circlize::colorRamp2(c(-1, 0, 1), c("#023C40", "white", "#B80C09")),
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        top_annotation = col_annotation,
+        heatmap_legend_param = list(
+            title = "Pearson's rho",
+            legend_height = unit(500, "points"),
+            border = "black",
+            labels_gp = grid::gpar(fontsize = 20),
+            title_gp = grid::gpar(fontsize = 30)
+        ),
+        width = unit(1000, "points"),
+        height = unit(1000, "points"),
+        row_labels = 0:(nrow(data_cor) - 1),
+        column_labels = 0:(nrow(data_cor) - 1),
+        column_names_rot = 50,
+        row_names_side = "left",
+        row_names_gp = grid::gpar(fontsize = 30),
+        column_names_gp = grid::gpar(fontsize = 30)
+    )
+    return(hm)
+}
+
 BarPlot <- function(seurat, group_by = NULL, split_by = NULL, ...) {
     legend_pos <- ifelse(is.null(split_by), "none", "bottom")
     if (!is.null(split_by)) {
@@ -126,8 +173,8 @@ PlotMethod <- function(type) {
         cell_type = MultiCellTypeAnnDimPlot,
         dot = DotPlot,
         heatmap = Heatmap,
-        de_plot = DEPlot
         de_plot = DEPlot,
+        cluster_cor = ClusterCorrelationPlot,
         bar = BarPlot
     )
     function(...) do.call(fun, list2(...))
@@ -149,16 +196,32 @@ if ("de" %in% names(snakemake@input)) {
     valid_params[["de_table"]] <- de
 }
 
-plot <- PlotMethod(named_params[["plot"]])(seurat, !!!valid_params) +
-    plot_annotation(
-        title = valid_params[["title"]],
-        subtitle = valid_params[["subtitle"]]
-    )
+plot <- PlotMethod(named_params[["plot"]])(seurat, !!!valid_params)
+
+plot_title_ann <- plot_annotation(title = valid_params[["title"]], subtitle = valid_params[["subtitle"]])
+
+if (!("ComplexHeatmap" %in% class(plot))) plot <- plot + plot_title_ann
+
+wide_plot <- any(named_params[["plot"]] %in% c("de_plot", "heatmap"), "split_by" %in% named_params)
+
+if (wide_plot) {
+    width <- 16
+    height <- 14
+} else {
+    width <- 14
+    height <- 14
+}
 
 for (f in snakemake@output) {
-    ggsave(
-        filename = f,
-        plot = plot,
-        width = 14, height = 14, dpi = 600
-    )
+    if ("HeatmapList" %in% class(plot)) {
+        Cairo::Cairo(width = unit(width * 100, "points"), height = unit(height * 100, "points"), dpi = 72, file = f, type = tools::file_ext(f))
+        ComplexHeatmap::draw(plot)
+        graphics.off()
+    } else {
+        ggsave(
+            filename = f,
+            plot = plot,
+            width = width, height = height, dpi = 600
+        )
+    }
 }
