@@ -35,6 +35,14 @@ plotting:
              "Hu.IgM", "Hu.CD4-RPA.T4", "Hu.CD8", "Hu.CD45RO" ]
       SCT: [ "GZMB", "IFNG", "TNF", "FEM1C", "CCL4", "GZMH", "MDM2", "TOP2A",
              "LGALS3", "SOD2", "HLA-DPA1", "CD74" ]
+  bar_plot:
+    subsets: [ "all_data" ]
+    reductions: [ "harmony", "pca" ]
+    assays: [ "SCT" ]
+    group_by_yte_only:
+      ?for assay in ["SCT"]:
+        - group: ?f"{assay}_{{reduction}}_clusters"
+          split: [ null, "condition", "tcr_motif" ]
   umap_plot:
     subsets: [ "t_cells", "macs", "all_data" ]
     assays: [ "SCT" ]

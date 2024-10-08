@@ -103,6 +103,20 @@ DEPlot <- function(seurat, de_table, n_genes = 5, ...) {
     SCpubr::do_GroupwiseDEPlot(sample = seurat, de_genes = de_table, top_genes = n_genes)
 }
 
+BarPlot <- function(seurat, group_by = NULL, split_by = NULL, ...) {
+    legend_pos <- ifelse(is.null(split_by), "none", "bottom")
+    if (!is.null(split_by)) {
+        new_group_by <- split_by
+        split_by <- group_by
+        group_by <- new_group_by
+    }
+    plot <- SCpubr::do_BarPlot(seurat, group.by = group_by, split.by = split_by, legend.position = legend_pos, position = "stack")
+    if (!is.null(split_by)) {
+        plot <- plot + SCpubr::do_BarPlot(seurat, group.by = group_by, split.by = split_by, legend.position = legend_pos, position = "fill")
+    }
+    return(plot)
+}
+
 PlotMethod <- function(type) {
     fun <- switch(
         type,
@@ -113,6 +127,8 @@ PlotMethod <- function(type) {
         dot = DotPlot,
         heatmap = Heatmap,
         de_plot = DEPlot
+        de_plot = DEPlot,
+        bar = BarPlot
     )
     function(...) do.call(fun, list2(...))
 }

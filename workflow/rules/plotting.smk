@@ -111,6 +111,36 @@ use rule qc_plot as heatmap with:
     log:
         "logs/de/{subset}/plots/{assay}/heatmap_by_{group_by}.log",
 
+
+use rule qc_plot as bar_plot with:
+    input:
+        seurat=get_proper_clustering_output(config, rules),
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
+    params:
+        title=PlotTitle("bar").make_title,
+        subtitle=make_plot_subtitle,
+        plot="bar",
+    output:
+        report(
+            "results/clustering/{subset}/plots/{assay}/{reduction}/barplot/{group_by}_by_{split_by}.png",
+            category=get_category_name,
+            subcategory="Quality Control",
+            labels=report_plot_labels,
+        ),
+        expand(
+            "results/clustering/{{subset}}/plots/{{assay}}/{{reduction}}/barplot/{{group_by}}_by_{{split_by}}.{ext}",
+            ext=PLOT_FILE_TYPES,
+        ),
+    resources:
+        mem="15GB",
+    log:
+        "logs/clustering/{subset}/plots/{assay}/{reduction}/barplot_{group_by}_by_{split_by}.log",
+
+
 use rule qc_plot as de_plot with:
     input:
         seurat=get_proper_clustering_output(config, rules),

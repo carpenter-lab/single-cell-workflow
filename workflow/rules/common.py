@@ -124,6 +124,8 @@ class PlotTitle:
                 return "Heatmap"
             case "de_plot":
                 return "Group wise DE Plot"
+            case "bar":
+                return "Bar Plot"
             case _:
                 return "No Title Can Be Created"
                 
