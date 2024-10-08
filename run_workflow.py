@@ -162,7 +162,7 @@ def setup_google_drive():
 @click.option("--cores", default=1, help="Number of cores", type=click.INT)
 @click.option("--report", default="report.html", help="Path to use to generate report", type=click.Path(dir_okay=False, path_type=pathlib.Path))
 @click.option("--gdrive-name", default="report.html", help="Name to use for report on Google Drive", type=click.STRING)
-@click.option("--gdrive", default="", help="Drive to use in Google Drive", type=click.STRING)
+@click.option("--gdrive", default=None, help="Drive to use in Google Drive", type=click.STRING)
 def run_workflow(cores, report, gdrive_name, gdrive):
     try:
         import panoptes
@@ -193,21 +193,12 @@ def run_workflow(cores, report, gdrive_name, gdrive):
         if e.code != 0:
             raise e
 
-    hash_old = None
-    if report.exists():
-        with open(report, "rb") as f:
-            hash_old = hashlib.md5(f.read()).hexdigest()
-
     try:
-        main(["--report", "report.html", "--quiet", "all"])
-    except SystemExit as e:
-        if e.code != 0:
-            raise e
+        main(["--report", str(report), "--quiet", "all"])
+    except SystemExit:
+        pass
 
-    with open("report.html", "rb") as f:
-        hash_new = hashlib.md5(f.read()).hexdigest()
-
-    if (hash_old != hash_new) & os.path.exists("client_secrets.json"):
+    if os.path.exists("client_secrets.json") and gdrive:
         print("Uploading to Google Drive...")
         UploadToGoogleDrive().add_drive_label(gdrive).update_with_new_file(
             gdrive_name, report
