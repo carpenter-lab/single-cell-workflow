@@ -1,5 +1,7 @@
 import os
+
 pep = config["pep"]
+
 
 rule gliph_prep:
     input:
@@ -9,10 +11,11 @@ rule gliph_prep:
         filter_chains=False,
         patient_id=pep.sample_table.patient_id,
         condition=pep.sample_table.condition,
-        tool="gliph"
+        tool="gliph",
     output:
         tsv="results/gliph/input_tcr.tsv",
-    log: "logs/gliph_prep.log"
+    log:
+        "logs/gliph_prep.log",
     conda:
         "../envs/seurat.yml"
     script:
@@ -62,7 +65,7 @@ rule render_gliph_template:
         input_tcr=rules.gliph_prep.output.tsv,
         ref=rules.download_gliph_reference.output.ref,
         pwd=os.path.abspath(os.curdir),
-        hla_file="data/HLA-ALL-Carpenter-forGLIPH2-2Aug2024.txt"
+        hla_file="data/HLA-ALL-Carpenter-forGLIPH2-2Aug2024.txt",
     output:
         temp("results/gliph/config.txt"),
     group:

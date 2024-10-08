@@ -59,10 +59,13 @@ module gliph:
 
 rule all:
     input:
-        expand("results/plotting/{plots}_plot_done", plots=["qc", "de", "cor", "umap", "bar"]),
+        expand(
+            "results/plotting/{plots}_plot_done",
+            plots=["qc", "de", "cor", "umap", "bar"],
+        ),
         "results/de/done",
     output:
-        touch("results/workflow_done")
+        touch("results/workflow_done"),
 
 
 use rule * from preprocessing

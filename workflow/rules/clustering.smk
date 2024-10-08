@@ -4,9 +4,13 @@ from common import get_subcluster_params, valid_dict_key
 rule integrate:
     input:
         seurat="results/pca/{subset}/object.rds",
-        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
     params:
-        method="harmony"
+        method="harmony",
     output:
         seurat="results/integration/{subset}.rds",
     threads: 4
@@ -21,7 +25,11 @@ rule integrate:
 rule cluster:
     input:
         seurat="results/integration/{subset}.rds",
-        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
     params:
         assay="SCT",
         reductions=["pca", "harmony"],
@@ -41,20 +49,31 @@ rule label_clusters:
             rules.cluster.output.seurat,
             subset=config["cluster"].get("all_data_key"),
         ),
-        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
     params:
-        **config["cluster"].get("labels")
+        **config["cluster"].get("labels"),
     output:
-        seurat=f"results/clustering/all_data/{config['cluster'].get('labels').get('new_group_by')}.rds"
-    conda: "../envs/seurat.yml",
-    log: "logs/clustering/label_clusters.log"
-    script: "../scripts/label_clusters.R"
+        seurat=f"results/clustering/all_data/{config['cluster'].get('labels').get('new_group_by')}.rds",
+    conda:
+        "../envs/seurat.yml"
+    log:
+        "logs/clustering/label_clusters.log",
+    script:
+        "../scripts/label_clusters.R"
 
 
 rule annotate_tcr_seurat:
     input:
         seurat=rules.label_clusters.output.seurat,
-        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
     params:
         tcr_patterns={
             "TB": [
@@ -87,10 +106,15 @@ rule annotate_tcr_seurat:
 
 
 if valid_dict_key(config["cluster"], "subclusters"):
+
     rule subcluster:
         input:
             seurat=rules.annotate_tcr_seurat.output.seurat,
-            matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+            matrix_dir=(
+                "results/import/bpcells_backing"
+                if config["preprocessing"]["use_bpcells"]
+                else None
+            ),
         params:
             *get_subcluster_params(config),
         output:

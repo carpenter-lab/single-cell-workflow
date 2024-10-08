@@ -3,23 +3,27 @@ from common import (
     validate_de_method,
     get_category_name,
     report_plot_labels,
-    WorkflowResults
+    WorkflowResults,
 )
 
 
 rule differential_expression:
     input:
         seurat=get_proper_clustering_output(config, rules),
-        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+        matrix_dir=(
+            "results/import/bpcells_backing"
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
     params:
         assay="{assay}",
         idents="{grouping}",
         test_use=validate_de_method(config["differential_expression"]["test"]),
     output:
         markers="results/de/{subset}/{assay}/{grouping}_markers.tsv",
-    threads: lambda wildcards: 1 if wildcards.assay == "ADT" else min(workflow.cores / 2, 4)
+    threads: lambda wildcards: 1 if wildcards.assay == "ADT" else 4
     resources:
-        mem=lambda wildcards: "10G" if wildcards.assay == "ADT" else "20G",
+        mem=lambda wildcards: "10G" if wildcards.assay == "ADT" else "40G",
         runtime="6h",
     log:
         "logs/de/{subset}/{assay}/{grouping}.log",
@@ -49,6 +53,7 @@ rule table_to_html:
     script:
         "../scripts/dataframe_to_DataTables.R"
 
+
 rule do_differential_expression:
     input:
         WorkflowResults(
@@ -56,5 +61,6 @@ rule do_differential_expression:
             "results/de/{subset}/{assay}/{group}_markers.{ext}",
             ext=["tsv", "html"],
         ).create_path_list(),
-    output: touch(temp("results/de/done"))
+    output:
+        touch(temp("results/de/done")),
     localrule: True

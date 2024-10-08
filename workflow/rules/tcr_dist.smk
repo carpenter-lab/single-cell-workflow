@@ -1,5 +1,6 @@
 pep = config["pep"]
 
+
 rule tcrdist_prep:
     input:
         tcr=pep.sample_table.tcr_path,
@@ -8,14 +9,16 @@ rule tcrdist_prep:
         filter_chains=False,
         patient_id=pep.sample_table.patient_id,
         condition=pep.sample_table.condition,
-        tool="tcrdist"
+        tool="tcrdist",
     output:
         csv="results/tcr_dist/input_tcr.csv",
-    log: "logs/tcrdist_prep.log"
+    log:
+        "logs/tcrdist_prep.log",
     conda:
         "../envs/seurat.yml"
     script:
         "../scripts/tcr_metacluster_prep.R"
+
 
 rule run_tcrdist:
     input:

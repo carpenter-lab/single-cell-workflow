@@ -5,7 +5,7 @@ library(Seurat)
 library(scRepertoire)
 library(cli)
 
-inputs <- snakemake@input[names(snakemake@input) != ""]
+inputs <- snakemake@input[names(snakemake@input) != ""] 
 
 assays <- lapply(inputs, readRDS)
 
