@@ -63,15 +63,19 @@ __definitions__:
 
 ```yaml
 preprocessing:
+  use_bpcells: true               # Should BPCells be used for disk backing
   normalisation:
     method: "sctransform"         # Normalisation Method (LogNormalize or sctransform)
     vars_to_regress: null         # Variables to regress during normalisation, null for no regression
 ```
 
-#### Subclustering
+[BPCells](https://bnprks.github.io/BPCells/index.html) is a package for high-performance single cell analysis.
+Using BPCells is highly reccomended with high numbers of cells (100k+) or on low memory devices.
+
+#### Clustering
 
 ```yaml
-subcluster:
+cluster:
   all_data_key: "all_data"         # Key to use for the filename containing all cells. Can be anything.
   subclusters:
     - name: t_cells                # Name to use for the subset. Can be anything.
@@ -82,6 +86,13 @@ subcluster:
         idents_keep: [ "Alveolar Mφ CCL3+", "Non-classical monocytes",     # And include a list of the identities to subset
                        "Alveolar macrophages", "Monocyte-derived Mφ",
                        "Alveolar Mφ MT-positive", "Classical monocytes" ]
+  labels:                                            # To label clusters based on top genes           
+    group_by: "SCT_harmony_clusters"                 # column name for clustering information
+    new_group_by: "SCT_harmony_clusters_labeled"     # new name for label information
+    cluster_labs:                                    # A mapping for cluster: name for each cluster       
+      "0": "LGAL Mφ"
+      [...]
+      "n": "IL7/GIMAP (T cells)"
 ```
 
 #### Differential Expression
@@ -102,10 +113,10 @@ A condensed format is included below.
 
 ```yaml
 plotting:
-  dot_plot|umap_plot:
+  dot_plot|bar_plot|umap_plot:
     subsets: [ "t_cells", "macs", "all_data" ]
     assays: [ "ADT", "SCT" ]
-    reductions: [ "harmony", "pca" ] # only for UMAP
+    reductions: [ "harmony", "pca" ] # only for UMAP and Bar Plots
     features: # only for Dot Plot
       ADT: [...]
       SCT: [...]
@@ -119,16 +130,16 @@ plotting:
     group_by: [ "predicted.ann_finest_level", "predicted.ann_level_2" ]
 ```
 
-However, for UMAP plots this becomes more complex.
+However, for UMAP and Bar plots this becomes more complex.
 There are two `group_by` parameters, `group_by` and `group_by_yte_only`.
 Both have the same structure, however `group_by_yte_only` will be parsed by YTE.
-`group` is the metadata column to **color** the UMAP plot by.
+`group` is the metadata column to **color** the plot by.
 `split` is the metadata column to **split** by, i.e. create separate plots.
 This can be a list, and when `null` there is no split.
 
 ```yaml
 plotting:
-  umap_plot:
+  umap_plot|bar_plot:
     group_by_yte_only:
       ?for assay in ["SCT"]:
         - group: ?f"{assay}_{{reduction}}_clusters"   # Two curly braces to prevent replacement now
@@ -141,6 +152,11 @@ plotting:
       - group: "tcr_ident"
         split: null
 ```
+
+You can also use YTE to change the split key.
+In that case, the format changes slightly. 
+`null` will change to `None` and a `?` is added prior to the `[` brackets, i.e. 
+`?[ None, "condition", f"{assay}_{{reduction}}_clusters" ]`
 
 ## Running the Workflow
 
@@ -155,17 +171,27 @@ snakemake --cores NUMBER_OF_CORES
 To use the included `run_workflow.py` script run either of these:
 
 ```bash
+# To see the help 
+./run_workflow.py [optional sub-command] --help
+
 # for a dry run
-DRYRUN=1 ./run_workflow.py 
+./run_workflow.py dry-run
 
 # setup upload to Google Drive does not run workflow
 # DO NOT SHARE THE "token.pickle" file. 
-SETUP_GDRIVE=1 ./run_workflow.py 
+./run_workflow.py setup-google-drive
 
 # Run workflow with 10 cores, creates report.html, and uploads report to Google Drive
-WORKFLOW_CORES=10 ./run_workflow.py
+./run_workflow.py run-workflow --cores 10 --report report.html --gdrive-name report.html
 ```
 
 This cannot be emphasized enough. 
 **DO NOT SHARE THE `token.pickle` FILE!** 
 This file can allow **anyone** the access to upload to your Google Drive.
+
+### Profiles
+The workflow also includes 2 profiles, local and slurm.
+The `run_workflow.py` script automatically uses these if present, 
+prefering slurm if `sbatch` is available (for example on a cluster at OSC).
+The settings here can be tweaked to supply Snakemake with default command line options.
+Some useful options would be using Apptainer to run all the commands in a container.
