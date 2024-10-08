@@ -91,17 +91,18 @@ rule annotate_tcr_seurat:
         "../scripts/label_tcr.R"
 
 
-rule subcluster:
-    input:
-        seurat=rules.annotate_tcr_seurat.output.seurat,
-        matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
-    params:
-        *get_subcluster_params(config),
-    output:
-        seurat="results/seurat_objects/{name}.rds",
-    log:
-        "logs/subclustering/{name}.log",
-    conda:
-        "../envs/seurat.yml"
-    script:
-        "../scripts/subcluster.R"
+if valid_dict_key(config["cluster"], "subclusters"):
+    rule subcluster:
+        input:
+            seurat=rules.annotate_tcr_seurat.output.seurat,
+            matrix_dir="results/import/bpcells_backing" if config["preprocessing"]["use_bpcells"] else None
+        params:
+            *get_subcluster_params(config),
+        output:
+            seurat="results/seurat_objects/{name}.rds",
+        log:
+            "logs/subclustering/{name}.log",
+        conda:
+            "../envs/seurat.yml"
+        script:
+            "../scripts/subcluster.R"

@@ -3,6 +3,7 @@ from common import (
     validate_de_method,
     get_category_name,
     report_plot_labels,
+    WorkflowResults
 )
 
 
@@ -47,3 +48,13 @@ rule table_to_html:
         "../envs/datatables_js.yml"
     script:
         "../scripts/dataframe_to_DataTables.R"
+
+rule do_differential_expression:
+    input:
+        WorkflowResults(
+            config["differential_expression"]["params"],
+            "results/de/{subset}/{assay}/{group}_markers.{ext}",
+            ext=["tsv", "html"],
+        ).create_path_list(),
+    output: touch(temp("results/de/done"))
+    localrule: True

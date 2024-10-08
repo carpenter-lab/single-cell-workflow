@@ -76,7 +76,7 @@ rule run_gliph:
         executable=rules.download_gliph.output,
         input_tcr=rules.gliph_prep.output.tsv,
         ref=rules.download_gliph_reference.output.ref,
-        config_file=temp("results/gliph/config.txt"),
+        config_file=rules.render_gliph_template.output,
     output:
         prefix=directory("results/gliph/results"),
     group:

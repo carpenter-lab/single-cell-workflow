@@ -59,26 +59,10 @@ module gliph:
 
 rule all:
     input:
-        expand("results/qc/{type}_qc_plot.png", type=["pre", "post"]),
-        WorkflowResults(
-            config["plotting"]["umap_plot"],
-            "results/clustering/{subset}/plots/{assay}/{reduction}/{group}_split_{split}.png",
-        ).create_path_list(),
-        WorkflowResults(
-            config["plotting"]["dot_plot"],
-            "results/de/{subset}/plots/{assay}/dot_plot_by_{group}.png",
-        ).create_path_list(),
-        WorkflowResults(
-            config["differential_expression"]["params"],
-            "results/de/{subset}/plots/{assay}/heatmap_by_{group}.png",
-        ).create_path_list(),
-        WorkflowResults(
-            config["differential_expression"]["params"],
-            "results/de/{subset}/{assay}/{group}_markers.{ext}",
-            ext=["tsv", "html"],
-        ).create_path_list(),
-        "results/tcr_dist/nn_summary.csv",
-        "results/gliph/results",
+        expand("results/plotting/{plots}_plot_done", plots=["qc", "de", "cor", "umap", "bar"]),
+        "results/de/done",
+    output:
+        touch("results/workflow_done")
 
 
 use rule * from preprocessing

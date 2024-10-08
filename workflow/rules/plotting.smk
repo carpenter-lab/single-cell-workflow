@@ -6,9 +6,12 @@ from common import (
     get_plot_type,
     get_category_name,
     make_plot_subtitle,
+    valid_dict_key,
+    WorkflowResults,
 )
 
-PLOT_FILE_TYPES=["pdf", "svg"]
+PLOT_FILE_TYPES = ["pdf", "svg"]
+
 
 def qc_plot_title(wildcards):
     if wildcards["type"] == "pre":
@@ -33,14 +36,14 @@ rule qc_plot:
         plot="qc",
     output:
         report(
-            "results/qc/{type}_qc_plot.png",
+            "results/qc/violin/{type}_qc_plot.png",
             category="Preprocessing",
             subcategory="Quality Control",
             labels=report_plot_labels,
         ),
-        expand("results/qc/{{type}}_qc_plot.{ext}", ext=PLOT_FILE_TYPES)
+        expand("results/qc/violin/{{type}}_qc_plot.{ext}", ext=PLOT_FILE_TYPES),
     log:
-        "logs/qc/{type}_plot.log",
+        "logs/qc/violin/{type}_plot.log",
     conda:
         "../envs/plotting.yml"
     script:
@@ -150,6 +153,7 @@ use rule qc_plot as de_plot with:
         title=PlotTitle("de_plot").make_title,
         subtitle=make_plot_subtitle,
         plot="de_plot",
+        n_genes=7
     output:
         report(
             "results/de/{subset}/plots/{assay}/de_plot_by_{group_by}.png",
@@ -192,3 +196,69 @@ use rule qc_plot as cluster_cor_plot with:
     threads: 4
     log:
         "logs/clustering/{subset}/plots/{assay}/{reduction_use}/correlation.log",
+
+
+rule do_dot_plot:
+    input:
+        WorkflowResults(
+            config["plotting"]["dot_plot"],
+            "results/de/{subset}/plots/{assay}/dot_plot_by_{group}.png",
+        ).create_path_list(),
+    output:
+        touch(temp("results/plotting/dot_plot_done")),
+    localrule: True
+
+
+use rule do_dot_plot as do_umap_plot with:
+    input:
+        WorkflowResults(
+            config["plotting"]["umap_plot"],
+            "results/clustering/{subset}/plots/{assay}/{reduction}/{group}_split_{split}.png",
+        ).create_path_list(),
+    output:
+        touch(temp("results/plotting/umap_plot_done")),
+    localrule: True
+
+
+use rule do_dot_plot as do_correlation_plot with:
+    input:
+        WorkflowResults(
+            config["plotting"]["umap_plot"],
+            "results/clustering/{subset}/plots/{assay}/{reduction}/correlation.png",
+        ).create_path_list(),
+    output:
+        touch(temp("results/plotting/cor_plot_done")),
+    localrule: True
+
+
+use rule do_dot_plot as do_de_plot with:
+    input:
+        expand(
+            WorkflowResults(
+                config["differential_expression"]["params"],
+                "results/de/{subset}/plots/{assay}/{{plot_type}}_by_{group}.png",
+            ).create_path_list(),
+            plot_type=["heatmap", "de_plot"],
+        ),
+    output:
+        touch(temp("results/plotting/de_plot_done")),
+    localrule: True
+
+
+use rule do_dot_plot as do_qc_plot with:
+    input:
+        expand("results/qc/violin/{type}_qc_plot.png", type=["pre", "post"]),
+    output:
+        touch(temp("results/plotting/qc_plot_done")),
+    localrule: True
+
+
+use rule do_dot_plot as do_bar_plot with:
+    input:
+        WorkflowResults(
+            config["plotting"]["bar_plot"],
+            "results/clustering/{subset}/plots/{assay}/{reduction}/barplot/{group}_by_{split}.png",
+        ).create_path_list(),
+    output:
+        touch(temp("results/plotting/bar_plot_done")),
+    localrule: True
