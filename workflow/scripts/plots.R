@@ -29,26 +29,28 @@ QCPlot <- function(seurat, ...) {
     (p1 + p2) / p3 & Seurat::NoLegend()
 }
 
-ClusterPlot <- function(seurat, reduction, group_by = NULL, ...) {
-    Seurat::DimPlot(seurat, reduction = reduction, group.by = group_by) & theme(aspect.ratio = 1)
-}
-
-SplitDimPlot <- function(seurat, reduction = "umap", group_by = NULL, split_by = "condition", ...) {
-    shuffle <- TRUE
-    idents_keep <- NULL
-
-    if (!is.null(group_by)) {
-        split_levels <- unique(seurat[[group_by, drop = TRUE]])
-        idents_keep <- c(split_levels[is.na(split_levels)], split_levels[!is.na(split_levels)])
-        shuffle <- !any(is.na(idents_keep))
-        idents_keep <- if (!all(is.na(idents_keep))) NULL
+ClusterPlot <- function(seurat, reduction, group_by = NULL, split_by = NULL, ...) {
+    group_by_vals <- seurat[[group_by, drop = TRUE]]
+    na_in_group_by <- any(is.na(group_by_vals) | group_by_vals == "NA")
+    
+    idents_keep <- if (na_in_group_by & is.null(split_by)) unique(group_by_vals[!is.na(group_by_vals)]) else NULL
+    split_by_test <- split_by %||% ""
+    if (group_by == split_by_test) {
+        idents_keep <- NULL
+        legend_pos <- "none"
+    } else {
+        legend_pos <- "bottom"
     }
-
-    Seurat::DimPlot(
+    
+    SCpubr::do_DimPlot(
         seurat,
         reduction = reduction,
         group.by = group_by,
-        split.by = split_by
+        split.by = split_by,
+        idents.keep = idents_keep,
+        na.value = "grey80",
+        legend.position = legend_pos,
+        font.size = 10
     ) &
         theme(aspect.ratio = 1)
 }
@@ -99,7 +101,6 @@ Heatmap <- function(seurat, group_by, features = NULL, ...) {
 }
 
 DEPlot <- function(seurat, de_table, n_genes = 5, ...) {
-    title <- glue::glue("Top {n_genes} DE Features per group")
     SCpubr::do_GroupwiseDEPlot(sample = seurat, de_genes = de_table, top_genes = n_genes)
 }
 
@@ -169,7 +170,6 @@ PlotMethod <- function(type) {
         type,
         qc = QCPlot,
         cluster = ClusterPlot,
-        split = SplitDimPlot,
         cell_type = MultiCellTypeAnnDimPlot,
         dot = DotPlot,
         heatmap = Heatmap,
