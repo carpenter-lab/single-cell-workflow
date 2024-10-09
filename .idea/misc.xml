@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="sdkName" value="tcr_bal2" />
+    <option name="sdkName" value="single-cell-workflow" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="tcr_bal2" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="single-cell-workflow" project-jdk-type="Python SDK" />
 </project>
