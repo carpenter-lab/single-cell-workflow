@@ -49,6 +49,7 @@ if ("ident2" %in% names(valid_params)) {
     markers <- FindAllMarkers(
         seurat,
         test.use = snakemake@params[["test_use"]],
+        only.pos = snakemake@params[["positive_only"]],
         verbose = FALSE
     )
 }

@@ -16,7 +16,6 @@ method <- switch(
 seurat <- IntegrateLayers(
     seurat,
     method = method,
-    normalization.method = "SCT",
     new.reduction = snakemake@params[["method"]],
     dims = 1:20,
     verbose = FALSE

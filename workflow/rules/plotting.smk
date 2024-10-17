@@ -56,7 +56,7 @@ rule qc_plot:
 
 use rule qc_plot as umap_plot with:
     input:
-        seurat=get_proper_clustering_output(config, rules),
+        seurat=get_proper_clustering_output(config),
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -69,22 +69,24 @@ use rule qc_plot as umap_plot with:
         reduction="{assay}_{reduction_use}_umap",
     output:
         report(
-            "results/clustering/{subset}/plots/{assay}/{reduction_use}/{group_by}_split_{split_by}.png",
+            "results/clustering/{subset}/plots/{assay}/{reduction_use}/dim_red/{group_by}_split_{split_by}.png",
             category=get_category_name,
             subcategory="Clustering",
             labels=report_plot_labels,
         ),
         expand(
-            "results/clustering/{{subset}}/plots/{{assay}}/{{reduction_use}}/{{group_by}}_split_{{split_by}}.{ext}",
+            "results/clustering/{{subset}}/plots/{{assay}}/{{reduction_use}}/dim_red/{{group_by}}_split_{{split_by}}.{ext}",
             ext=PLOT_FILE_TYPES,
         ),
+    resources:
+        mem="20GB"
     log:
-        "logs/umap_plots/{subset}/{assay}/{reduction_use}/{group_by}_split_{split_by}.log",
+        "logs/clustering/{subset}/plots/{assay}/{reduction_use}/dim_red/{group_by}_split_{split_by}.log",
 
 
 use rule qc_plot as dot_plot with:
     input:
-        seurat=get_proper_clustering_output(config, rules),
+        seurat=get_proper_clustering_output(config),
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -97,23 +99,23 @@ use rule qc_plot as dot_plot with:
         features=get_dot_plot_features(config),
     output:
         report(
-            "results/de/{subset}/plots/{assay}/dot_plot_by_{group_by}.png",
+            "results/de/{subset}/plots/{assay}/dot_plot/{group_by}.png",
             category=get_category_name,
             subcategory="Differential Expression",
             labels=report_plot_labels,
         ),
         expand(
-            "results/de/{{subset}}/plots/{{assay}}/dot_plot_by_{{group_by}}.{ext}",
+            "results/de/{{subset}}/plots/{{assay}}/dot_plot/{{group_by}}.{ext}",
             ext=PLOT_FILE_TYPES,
         ),
     log:
-        "logs/de/{subset}/plots/{assay}/dot_plot_by_{group_by}.log",
+        "logs/de/{subset}/plots/{assay}/dot_plot/{group_by}.log",
 
 
 use rule qc_plot as heatmap with:
     input:
-        seurat=get_proper_clustering_output(config, rules),
-        de="results/de/{subset}/{assay}/{group_by}_markers.tsv",
+        seurat=get_proper_clustering_output(config),
+        de="results/de/{subset}/{assay}/{group_by}_positive_markers.tsv",
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -125,24 +127,24 @@ use rule qc_plot as heatmap with:
         plot="heatmap",
     output:
         report(
-            "results/de/{subset}/plots/{assay}/heatmap_by_{group_by}.png",
+            "results/de/{subset}/plots/{assay}/heatmap/{group_by}.png",
             category=get_category_name,
             subcategory="Differential Expression",
             labels=report_plot_labels,
         ),
         expand(
-            "results/de/{{subset}}/plots/{{assay}}/heatmap_by_{{group_by}}.{ext}",
+            "results/de/{{subset}}/plots/{{assay}}/heatmap/{{group_by}}.{ext}",
             ext=PLOT_FILE_TYPES,
         ),
     resources:
-        mem="15GB",
+        mem="25GB",
     log:
-        "logs/de/{subset}/plots/{assay}/heatmap_by_{group_by}.log",
+        "logs/de/{subset}/plots/{assay}/heatmap/{group_by}.log",
 
 
 use rule qc_plot as bar_plot with:
     input:
-        seurat=get_proper_clustering_output(config, rules),
+        seurat=get_proper_clustering_output(config),
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -166,13 +168,13 @@ use rule qc_plot as bar_plot with:
     resources:
         mem="15GB",
     log:
-        "logs/clustering/{subset}/plots/{assay}/{reduction}/barplot_{group_by}_by_{split_by}.log",
+        "logs/clustering/{subset}/plots/{assay}/{reduction}/barplot/{group_by}_by_{split_by}.log",
 
 
 use rule qc_plot as de_plot with:
     input:
-        seurat=get_proper_clustering_output(config, rules),
-        de="results/de/{subset}/{assay}/{group_by}_markers.tsv",
+        seurat=get_proper_clustering_output(config),
+        de="results/de/{subset}/{assay}/{group_by}_positive_markers.tsv",
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -185,24 +187,24 @@ use rule qc_plot as de_plot with:
         n_genes=7,
     output:
         report(
-            "results/de/{subset}/plots/{assay}/de_plot_by_{group_by}.png",
+            "results/de/{subset}/plots/{assay}/de_plot/{group_by}.png",
             category=get_category_name,
             subcategory="Differential Expression",
             labels=report_plot_labels,
         ),
         expand(
-            "results/de/{{subset}}/plots/{{assay}}/de_plot_{{group_by}}.{ext}",
+            "results/de/{{subset}}/plots/{{assay}}/de_plot/{{group_by}}.{ext}",
             ext=PLOT_FILE_TYPES,
         ),
     resources:
         mem="15GB",
     log:
-        "logs/de/{subset}/plots/{assay}/de_plot_by_{group_by}.log",
+        "logs/de/{subset}/plots/{assay}/de_plot/{group_by}.log",
 
 
 use rule qc_plot as cluster_cor_plot with:
     input:
-        seurat=get_proper_clustering_output(config, rules),
+        seurat=get_proper_clustering_output(config),
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -212,29 +214,30 @@ use rule qc_plot as cluster_cor_plot with:
         title=PlotTitle("cluster_cor").make_title,
         plot="cluster_cor",
         group_by="{assay}_{reduction_use}_clusters",
+        cluster=lambda wildcards: wildcards["cluster_fname"] == "clustered"
     output:
         report(
-            "results/clustering/{subset}/plots/{assay}/{reduction_use}/correlation.png",
+            "results/clustering/{subset}/plots/{assay}/{reduction_use}/correlation_{cluster_fname}.png",
             category=get_category_name,
             subcategory="Clustering",
             labels=report_plot_labels,
         ),
         expand(
-            "results/clustering/{{subset}}/plots/{{assay}}/{{reduction_use}}/correlation.{ext}",
+            "results/clustering/{{subset}}/plots/{{assay}}/{{reduction_use}}/correlation_{{cluster_fname}}.{ext}",
             ext=PLOT_FILE_TYPES,
         ),
     resources:
         mem="15GB",
     threads: 4
     log:
-        "logs/clustering/{subset}/plots/{assay}/{reduction_use}/correlation.log",
+        "logs/clustering/{subset}/plots/{assay}/{reduction_use}/correlation_{cluster_fname}.log",
 
 
 rule do_dot_plot:
     input:
         WorkflowResults(
             config["plotting"]["dot_plot"],
-            "results/de/{subset}/plots/{assay}/dot_plot_by_{group}.png",
+            "results/de/{subset}/plots/{assay}/dot_plot/{group}.png",
         ).create_path_list(),
     output:
         touch(temp("results/plotting/dot_plot_done")),
@@ -245,7 +248,7 @@ use rule do_dot_plot as do_umap_plot with:
     input:
         WorkflowResults(
             config["plotting"]["umap_plot"],
-            "results/clustering/{subset}/plots/{assay}/{reduction}/{group}_split_{split}.png",
+            "results/clustering/{subset}/plots/{assay}/{reduction}/dim_red/{group}_split_{split}.png",
         ).create_path_list(),
     output:
         touch(temp("results/plotting/umap_plot_done")),
@@ -254,10 +257,10 @@ use rule do_dot_plot as do_umap_plot with:
 
 use rule do_dot_plot as do_correlation_plot with:
     input:
-        WorkflowResults(
+        expand(WorkflowResults(
             config["plotting"]["umap_plot"],
-            "results/clustering/{subset}/plots/{assay}/{reduction}/correlation.png",
-        ).create_path_list(),
+            "results/clustering/{subset}/plots/{assay}/{reduction}/correlation_{{cluster}}.png",
+        ).create_path_list(), cluster=["clustered", "not_clustered"]),
     output:
         touch(temp("results/plotting/cor_plot_done")),
     localrule: True
@@ -268,7 +271,7 @@ use rule do_dot_plot as do_de_plot with:
         expand(
             WorkflowResults(
                 config["differential_expression"]["params"],
-                "results/de/{subset}/plots/{assay}/{{plot_type}}_by_{group}.png",
+                "results/de/{subset}/plots/{assay}/{{plot_type}}/{group}.png",
             ).create_path_list(),
             plot_type=["heatmap", "de_plot"],
         ),

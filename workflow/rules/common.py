@@ -314,7 +314,6 @@ class WorkflowResults:
     ):
         if reductions:
             for subset, assay, reduction in product(subsets, assays, reductions):
-                # file_path = cls._curly_braces_to_parens_string(file_path)
                 init_path = file_path.format(
                     **{
                         "subset": subset,
@@ -324,12 +323,16 @@ class WorkflowResults:
                         "split": split,
                     }
                 )
-                # init_path = cls._curly_braces_to_parens_string(init_path)
-                updated_path = init_path.format(
-                    **{
-                        "reduction": reduction,
-                    }
-                )
+                avail_fields = string.Formatter().parse(init_path)
+                avail_fields = [ x for _, x, _, _ in avail_fields]
+                if any([f == "reduction" for f in avail_fields]):
+                    updated_path = init_path.format(
+                        **{
+                            "reduction": reduction,
+                        }
+                    )
+                else:
+                    updated_path = init_path
                 path_list.append(updated_path)
         else:
             for subset, assay in product(subsets, assays):
@@ -346,8 +349,6 @@ class WorkflowResults:
                         )
                         path_list.append(init_path)
                 else:
-
-                    # file_path = cls._curly_braces_to_parens_string(file_path)
                     init_path = file_path.format(
                         **{
                             "subset": subset,

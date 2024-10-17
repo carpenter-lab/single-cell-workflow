@@ -17,7 +17,7 @@ labels2 <- glue("'{from}' ~ '{from}|{to}'", from = names(labels), to = labels)
 seurat[[new_labels]] <- seurat[[clustering]] |>
     mutate(
         "{new_labels}" := case_match(.data[[clustering]], !!!parse_exprs(labels2)),
-        "{new_labels}" := forcats::fct(.data[[new_labels]], levels = glue("{from}| {to}", from = names(labels), to = labels))
+        "{new_labels}" := forcats::fct(.data[[new_labels]], levels = glue("{from}|{to}", from = names(labels), to = labels))
     ) |>
     pull(all_of(new_labels))
 

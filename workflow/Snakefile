@@ -13,7 +13,7 @@ configfile: "config/config.yml"
 pepfile: "pep/config.yml"
 
 
-pepschema: "schema.yml"
+#pepschema: "schema.yml"
 
 config["pep"] = pep
 

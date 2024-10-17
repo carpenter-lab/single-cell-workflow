@@ -1,5 +1,5 @@
 snakemake@source("functions.R")
-# SinkAllOutput(snakemake@log)
+SinkAllOutput(snakemake@log)
 
 library(tidyverse)
 library(Seurat)

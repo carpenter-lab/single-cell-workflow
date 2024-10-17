@@ -5,7 +5,8 @@ library(tidyverse)
 library(patchwork)
 library(rlang)
 library(cli)
-options(error = rlang::entrace)
+
+rlang::global_entrace()
 
 
 QCPlot <- function(seurat, ...) {
@@ -101,10 +102,16 @@ Heatmap <- function(seurat, group_by, features = NULL, ...) {
 }
 
 DEPlot <- function(seurat, de_table, n_genes = 5, ...) {
+    seurat <- tryCatch(
+        SeuratObject::JoinLayers(seurat),
+        error = function(e) return(seurat)
+    )
+    SeuratObject::LayerData(seurat, layer = "data") <- as(SeuratObject::LayerData(seurat, layer = "data"), "sparseMatrix")
     SCpubr::do_GroupwiseDEPlot(sample = seurat, de_genes = de_table, top_genes = n_genes)
 }
 
 ClusterCorrelationPlot <- function(seurat, group_by, assay, ...) {
+ClusterCorrelationPlot <- function(seurat, group_by, assay, cluster, ...) {
     data <- Seurat::AverageExpression(seurat, assays = assay, group.by = group_by, layer = "scale.data")[[assay]]
     data_cor <- data |> as.matrix() |> cor()
 
@@ -125,28 +132,51 @@ ClusterCorrelationPlot <- function(seurat, group_by, assay, ...) {
         annotation_name_gp = grid::gpar(fontsize = 20),
         gp = grid::gpar(fontsize = 20)
     )
+    new_labels <- 0:(nrow(data_cor) - 1)
+
+    split <- if (cluster) 4 else letters[floor(new_labels / 5) + 1]
 
     hm <- ComplexHeatmap::Heatmap(
         data_cor,
         col = circlize::colorRamp2(c(-1, 0, 1), c("#023C40", "white", "#B80C09")),
-        cluster_rows = FALSE,
-        cluster_columns = FALSE,
+        na_col = "white",
+
+        cluster_rows = cluster,
+        cluster_columns = cluster,
+        border = "black",
+        border_gp = grid::gpar(lwd = 2),
+
+        row_labels = new_labels,
+        row_names_gp = grid::gpar(fontsize = 30),
+        row_dend_side = "right",
+        row_dend_width = unit(60, "points"),
+        row_names_side = if_else(cluster, "right", "left"),
+        row_split = split,
+        row_title = " ",
+        row_gap = unit(10, "points"),
+
+        column_labels = new_labels,
+        column_names_rot = 50,
+        column_names_gp = grid::gpar(fontsize = 30),
+        column_dend_height = unit(60, "points"),
+        column_names_side = if_else(cluster, "top", "bottom"),
+        column_split = split,
+        column_title = " ",
+        column_gap = unit(10, "points"),
+
         top_annotation = col_annotation,
         heatmap_legend_param = list(
-            title = "Pearson's rho",
+            title = "Pearson's ρ",
             legend_height = unit(500, "points"),
             border = "black",
             labels_gp = grid::gpar(fontsize = 20),
-            title_gp = grid::gpar(fontsize = 30)
+            title_gp = grid::gpar(fontsize = 30),
+            title_position = "leftcenter-rot",
+            grid_width = unit(20, "points")
         ),
+
         width = unit(1000, "points"),
-        height = unit(1000, "points"),
-        row_labels = 0:(nrow(data_cor) - 1),
-        column_labels = 0:(nrow(data_cor) - 1),
-        column_names_rot = 50,
-        row_names_side = "left",
-        row_names_gp = grid::gpar(fontsize = 30),
-        column_names_gp = grid::gpar(fontsize = 30)
+        height = unit(1000, "points")
     )
     return(hm)
 }
@@ -181,7 +211,6 @@ PlotMethod <- function(type) {
 }
 
 seurat <- readRDS(snakemake@input[["seurat"]])
-
 params <- c(snakemake@wildcards, snakemake@params)
 named_params <- params[names(params) != ""]
 valid_params <- named_params[named_params != "None"]
@@ -200,7 +229,7 @@ plot <- PlotMethod(named_params[["plot"]])(seurat, !!!valid_params)
 
 plot_title_ann <- plot_annotation(title = valid_params[["title"]], subtitle = valid_params[["subtitle"]])
 
-if (!("ComplexHeatmap" %in% class(plot))) plot <- plot + plot_title_ann
+if (!("ComplexHeatmap" %in% class(plot) || "ListOfComplexHeatmaps" %in% class(plot))) plot <- plot + plot_title_ann
 
 wide_plot <- any(named_params[["plot"]] %in% c("de_plot", "heatmap"), "split_by" %in% named_params)
 
@@ -215,13 +244,16 @@ if (wide_plot) {
 for (f in snakemake@output) {
     if ("HeatmapList" %in% class(plot)) {
         Cairo::Cairo(width = unit(width * 100, "points"), height = unit(height * 100, "points"), dpi = 72, file = f, type = tools::file_ext(f))
-        ComplexHeatmap::draw(plot)
+        ComplexHeatmap::draw(plot, heatmap_legend_side = if_else(named_params[["cluster"]], "left", "right"))
         graphics.off()
     } else {
         ggsave(
             filename = f,
             plot = plot,
-            width = width, height = height, dpi = 600
+            width = width,
+            device = if (tools::file_ext(f) == "svg") Cairo::CairoSVG else NULL,
+            height = height,
+            dpi = if (tools::file_ext(f) == "png") 150 else 600
         )
     }
 }

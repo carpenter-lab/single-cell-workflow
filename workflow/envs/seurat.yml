@@ -18,4 +18,4 @@ dependencies:
   - r-cli
   - r-harmony
   - r-remotes
-  - r-bpcells
+  - r-bpcells>=0.2

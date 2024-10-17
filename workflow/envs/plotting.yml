@@ -18,4 +18,4 @@ dependencies:
   - bioconductor-complexheatmap
   - r-cairo
   - r-ggplotify
-  - r-bpcells
+  - r-bpcells>=0.2

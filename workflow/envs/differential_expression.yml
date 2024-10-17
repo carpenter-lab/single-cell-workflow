@@ -13,4 +13,4 @@ dependencies:
   - bioconductor-mast
   - r-presto
   - bioconductor-deseq2
-  - r-bpcells
+  - r-bpcells>=0.2

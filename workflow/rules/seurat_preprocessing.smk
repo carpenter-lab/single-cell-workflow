@@ -13,6 +13,11 @@ rule import_rna:
     output:
         assay="results/import/rna.rds",
         matrix_dir=(
+            directory("results/import/bpcells_backing/RNA")
+            if config["preprocessing"]["use_bpcells"]
+            else None
+        ),
+        pseudo_matrix_dir=(
             directory("results/import/bpcells_backing")
             if config["preprocessing"]["use_bpcells"]
             else None
@@ -152,11 +157,6 @@ rule pca:
     threads: 4
     log:
         "logs/pca_{subset}.log",
-    conda:
-        (
-            "../envs/trex.yml"
-            if "TCR" in config["preprocessing"]["assays"]
-            else "../envs/seurat.yml"
-        )
+    conda: "../envs/seurat.yml"
     script:
         "../scripts/pca_reduction.R"

@@ -9,7 +9,7 @@ from common import (
 
 rule differential_expression:
     input:
-        seurat=get_proper_clustering_output(config, rules),
+        seurat=get_proper_clustering_output(config),
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
@@ -19,14 +19,15 @@ rule differential_expression:
         assay="{assay}",
         idents="{grouping}",
         test_use=validate_de_method(config["differential_expression"]["test"]),
+        positive_only="{direction}" == "positive"
     output:
-        markers="results/de/{subset}/{assay}/{grouping}_markers.tsv",
+        markers="results/de/{subset}/{assay}/{grouping}_{direction}_markers.tsv",
     threads: lambda wildcards: 1 if wildcards.assay == "ADT" else 4
     resources:
         mem=lambda wildcards: "10G" if wildcards.assay == "ADT" else "40G",
         runtime="6h",
     log:
-        "logs/de/{subset}/{assay}/{grouping}.log",
+        "logs/de/{subset}/{assay}/{grouping}_{direction}.log",
     conda:
         "../envs/differential_expression.yml"
     script:
@@ -38,16 +39,17 @@ rule table_to_html:
         table=rules.differential_expression.output.markers,
     output:
         html=report(
-            "results/de/{subset}/{assay}/{grouping}_markers.html",
+            "results/de/{subset}/{assay}/{grouping}_{direction}_markers.html",
             category=get_category_name,
             subcategory="Differential Expression",
             labels=report_plot_labels,
         ),
         html_library=directory(
-            "results/de/{subset}/{assay}/html_libs/{grouping}_markers"
+            "results/de/{subset}/{assay}/html_libs/{grouping}_{direction}_markers"
         ),
     log:
-        "logs/de/{subset}/{assay}/html_{grouping}.log",
+        "logs/de/{subset}/{assay}/html_{grouping}_{direction}.log",
+    localrule: True
     conda:
         "../envs/datatables_js.yml"
     script:
@@ -58,7 +60,7 @@ rule do_differential_expression:
     input:
         WorkflowResults(
             config["differential_expression"]["params"],
-            "results/de/{subset}/{assay}/{group}_markers.{ext}",
+            "results/de/{subset}/{assay}/{group}_positive_markers.{ext}",
             ext=["tsv", "html"],
         ).create_path_list(),
     output:

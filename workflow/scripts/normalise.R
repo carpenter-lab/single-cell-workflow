@@ -8,34 +8,35 @@ options(future.globals.maxSize = 4 * 1024^3)
 
 seurat <- readRDS(snakemake@input[["seurat"]])
 
-if (snakemake@params[["method"]] == "sctransform") {
-    seurat <- SCTransform(seurat, verbose = FALSE)
-} else {
-    seurat <- NormalizeData(marrow)
-    seurat <- FindVariableFeatures(seurat)
-}
-
-seurat <- CellCycleScoring(
-    seurat,
-    g2m.features = cc.genes.updated.2019$g2m.genes,
-    s.features = cc.genes.updated.2019$s.genes,
-    search = TRUE,
-    nbin = 12
-)
-
-seurat[["cell_cycle_diff"]] <- seurat[["S.Score"]] - seurat[["G2M.Score"]]
-
-if (length(snakemake@params[["vars_to_regress"]] > 0)) {
+if ("RNA" %in% Assays(seurat)) {
     if (snakemake@params[["method"]] == "sctransform") {
-        seurat <- SCTransform(
-            seurat,
-            verbose = FALSE,
-            vars.to.regress = snakemake@params[["vars_to_regress"]]
-        )
+        seurat <- SCTransform(seurat, verbose = FALSE)
     } else {
-        seurat <- ScaleData(seurat, snakemake@params[["vars_to_regress"]])
+        seurat <- NormalizeData(seurat)
+        seurat <- FindVariableFeatures(seurat)
     }
-}
+
+    seurat <- CellCycleScoring(
+        seurat,
+        g2m.features = cc.genes.updated.2019$g2m.genes,
+        s.features = cc.genes.updated.2019$s.genes,
+        search = FALSE,
+        nbin = 12
+    )
+
+    seurat[["cell_cycle_diff"]] <- seurat[["S.Score"]] - seurat[["G2M.Score"]]
+
+    if (length(snakemake@params[["vars_to_regress"]] > 0)) {
+        if (snakemake@params[["method"]] == "sctransform") {
+            seurat <- SCTransform(
+                seurat,
+                verbose = FALSE,
+                vars.to.regress = snakemake@params[["vars_to_regress"]]
+            )
+        } else {
+            seurat <- ScaleData(seurat, snakemake@params[["vars_to_regress"]])
+        }
+    }
 
 if ("ADT" %in% Assays(seurat)) {
      seurat <- NormalizeData(

@@ -1,3 +1,5 @@
+from typing import Callable
+
 from common import get_subcluster_params, valid_dict_key
 
 
@@ -66,9 +68,19 @@ rule label_clusters:
         "../scripts/label_clusters.R"
 
 
+def decide_label_input(config: dict) -> Callable:
+    def _decide_label_input(wildcards: dict) -> str:
+        if valid_dict_key(config["cluster"], "labels"):
+            if not config["cluster"]["labels"]["skip"]:
+                return f"results/clustering/all_data/{config['cluster'].get('labels').get('new_group_by')}.rds"
+        return "results/clustering/{subset}.rds".format(subset=config["cluster"].get("all_data_key"))
+
+    return _decide_label_input
+
+
 rule annotate_tcr_seurat:
     input:
-        seurat=rules.label_clusters.output.seurat,
+        seurat=decide_label_input(config),
         matrix_dir=(
             "results/import/bpcells_backing"
             if config["preprocessing"]["use_bpcells"]
