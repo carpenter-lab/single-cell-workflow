@@ -1,5 +1,4 @@
 from snakemake.utils import min_version
-from rules.common import WorkflowResults
 
 min_version("3.7")
 
