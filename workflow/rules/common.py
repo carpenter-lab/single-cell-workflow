@@ -194,7 +194,7 @@ def get_category_name(wildcards: dict) -> str:
     return subset.replace("_", " ")
 
 
-def get_proper_clustering_output(config, rules) -> Callable:
+def get_proper_clustering_output(config) -> Callable:
     def _get_proper_clustering_output(wildcards):
         if wildcards["subset"] == config["cluster"].get("all_data_key"):
             return "results/gliph/labelled_tcr.rds"
