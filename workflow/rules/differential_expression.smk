@@ -1,10 +1,4 @@
-from common import (
-    get_proper_clustering_output,
-    validate_de_method,
-    get_category_name,
-    report_plot_labels,
-    WorkflowResults,
-)
+include: "common.py"
 
 
 rule differential_expression:

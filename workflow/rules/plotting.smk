@@ -1,14 +1,4 @@
-from common import (
-    report_plot_labels,
-    get_proper_clustering_output,
-    get_dot_plot_features,
-    PlotTitle,
-    get_plot_type,
-    get_category_name,
-    make_plot_subtitle,
-    valid_dict_key,
-    WorkflowResults,
-)
+include: "common.py"
 
 PLOT_FILE_TYPES = ["pdf", "svg"]
 

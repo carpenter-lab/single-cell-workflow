@@ -1,6 +1,6 @@
 from typing import Callable
 
-from common import get_subcluster_params, valid_dict_key
+include: "common.py"
 
 
 rule integrate:
