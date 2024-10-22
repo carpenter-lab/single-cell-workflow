@@ -53,7 +53,8 @@ if (any(!(sample_list_names %in% names(samples)))) {
 }
 
 Read10X <- function(h5, use_bpcells = FALSE, matrix_dir = NULL, assay = NULL) {
-    data <- Read10X_h5(h5)[[assay]]
+    data <- Read10X_h5(h5)
+    if (is.list(data)) data <- data[[assay]]
     if (use_bpcells) {
         BPCells::write_matrix_dir(mat = data, dir = matrix_dir)
         data <- BPCells::open_matrix_dir(dir = matrix_dir)
