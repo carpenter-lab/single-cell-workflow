@@ -110,7 +110,6 @@ DEPlot <- function(seurat, de_table, n_genes = 5, ...) {
     SCpubr::do_GroupwiseDEPlot(sample = seurat, de_genes = de_table, top_genes = n_genes)
 }
 
-ClusterCorrelationPlot <- function(seurat, group_by, assay, ...) {
 ClusterCorrelationPlot <- function(seurat, group_by, assay, cluster, ...) {
     data <- Seurat::AverageExpression(seurat, assays = assay, group.by = group_by, layer = "scale.data")[[assay]]
     data_cor <- data |> as.matrix() |> cor()
