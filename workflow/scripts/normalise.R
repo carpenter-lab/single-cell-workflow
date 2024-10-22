@@ -38,6 +38,8 @@ if ("RNA" %in% Assays(seurat)) {
         }
     }
 
+}
+
 if ("ADT" %in% Assays(seurat)) {
      seurat <- NormalizeData(
          seurat,
